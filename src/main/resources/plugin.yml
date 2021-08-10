@@ -1,0 +1,7 @@
+name: ${project.name}
+version: ${project.version}
+main: io.alekso56.bukkit.hazeinv.Core
+api-version: 1.17
+softdepend: [Multiverse-Core,Towny,PlotSquared]
+
+permissions:
