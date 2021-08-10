@@ -5,10 +5,13 @@ Minimum core, allowing sql/flatfile based storage of inventories, per world per 
 ### Setup core
 config
  SQL settings, toggles. 
+ inactive player data time, default -1. (days) (for purge command)
+ auto delete inventories for worlds that are no longer loaded?
+ 
  
 ### information about sorting
  we will sort inventories in this structure for flatfile local storage.
- circle -> worldname -> username -> data.json/data.dat
+ circle -> worldname -> uuid.json/uuid.dat
  Every single world is assigned to "unassigned" by default, these worlds will not share inventories with anything.
  
 ### Setup events
@@ -28,7 +31,7 @@ Event  | comment
 ------------ | -------------
 PreInventoryChangeEvent | Before the inventory is changed for the user
 PostInventoryChangeEvent | 1 tick after the inv is changed
-> get Object for player (uuid based) > get circle from object
-> get circle from world > adjust circle
+get Object for player (uuid based) > get circle from object
+get circle from world > adjust circle
 
 ### Extrapolate required changes for third party plugins
