@@ -16,6 +16,29 @@ config
  > circle -> worldname -> uuid.json/uuid.dat
  
  > Every single world is assigned to "unassigned" by default, these worlds will not share inventories with anything.
+
+## Commonly requested features
+> Store data in player.dat files, native to minecraft, alternativly, provide export to player.dat files
+
+> conversion between all known plugins PWI/MULTIVERSE/Xinventories/MultiInv/etc
+
+>  Storage of attributes and stats
+
+> Integration with OpenINV/essentials
+
+> cross server enderchest (sql)
+
+> get player data from a database (e. g. MariaDB).
+
+> prevent players from getting advancements in certain worlds
+
+> clear inventories per world group/per world
+
+> set login location of offline players per world group
+
+> Override api for saving spesific things, other plugins can ask to not save a stat for a spesific player.
+
+> per-gamemode-inv
  
 ### Setup events
 Event  | comment
