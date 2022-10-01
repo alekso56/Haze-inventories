@@ -1,15 +1,21 @@
 package io.alekso56.bukkit.hazeinv;
 
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.UUID;
 import java.util.logging.Level;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import io.alekso56.bukkit.hazeinv.Models.PlayerData;
+
 
 public class Core extends JavaPlugin {
     private static Core instance;
+    //during world transition, deny any 
+    private static final HashMap<UUID, PlayerData> syncingPlayers = new HashMap<UUID, PlayerData>();
 
     @Override
     public void onLoad() {
@@ -19,11 +25,12 @@ public class Core extends JavaPlugin {
     @Override
     public void onEnable() {
         Path basePath = getDataFolder().toPath();
+        
     }
 
     @Override
     public void onDisable() {
-       
+       syncingPlayers.clear();
     }
 
     public void log(@NotNull Level level, @NotNull String message, @Nullable Throwable e) {
