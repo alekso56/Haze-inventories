@@ -2,10 +2,12 @@ package io.alekso56.bukkit.hazeinv.Util;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.logging.Level;
 
 import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 
+import io.alekso56.bukkit.hazeinv.Core;
 import net.minecraft.nbt.NBTCompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.level.EntityPlayer;
@@ -41,11 +43,11 @@ public class VanillaPlayer extends CraftPlayer {
             NBTCompressedStreamTools.a(playerData, new FileOutputStream(file));
 
             if (file1.exists() && !file1.delete() || !file.renameTo(file1)) {
-                LogManager.getLogger().warn("Failed to save player data for {}", player.getDisplayName().getString());
+                Core.instance.log(Level.WARNING, "Failed to save player data for "+player.getDisplayName().getString());
             }
 
         } catch (Exception e) {
-            LogManager.getLogger().warn("Failed to save player data for {}", player.getDisplayName().getString());
+        	Core.instance.log(Level.WARNING, "Failed to save player data for "+player.getDisplayName().getString());
         }
     }
         

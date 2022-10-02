@@ -4,7 +4,9 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,10 +15,10 @@ import io.alekso56.bukkit.hazeinv.Models.PlayerData;
 
 
 public class Core extends JavaPlugin {
-    private static Core instance;
+    public static Core instance;
     //during world transition, deny any 
     private static final HashMap<UUID, PlayerData> syncingPlayers = new HashMap<UUID, PlayerData>();
-
+    
     @Override
     public void onLoad() {
         instance = this;
