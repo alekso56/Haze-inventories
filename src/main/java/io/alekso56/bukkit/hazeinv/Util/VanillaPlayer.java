@@ -1,46 +1,64 @@
 package io.alekso56.bukkit.hazeinv.Util;
 
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.logging.Level;
+
+import javax.annotation.Nullable;
 
 import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 
 import io.alekso56.bukkit.hazeinv.Core;
-import net.minecraft.nbt.NBTCompressedStreamTools;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.world.level.storage.WorldNBTStorage;
+import io.alekso56.bukkit.hazeinv.Models.Circle;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.PlayerDataStorage;
 
 public class VanillaPlayer extends CraftPlayer {
+	
+	Circle current_circle;
 
-	public VanillaPlayer(CraftServer server, EntityPlayer entity) {
+	public VanillaPlayer(CraftServer server, ServerPlayer entity) {
 		super(server, entity);
 	}
 	
 	@Override
     public void loadData() {
-        NBTTagCompound player = this.server.getHandle().r.load(this.getHandle());
-        if (player != null) {
-            readExtraData(player);
+        @Nullable PlayerDataStorage storage = this.server.getHandle().playerIo;
+        if(storage == null) {
+        	Core.instance.log(Level.WARNING, "Failed to load player data, playerIo is not enabled.");
+        	return;
         }
+        ServerPlayer player = this.getHandle();
+        File file1 = new File(storage.getPlayerDir(), player.getEncodeId() + ".dat");
+        try {
+			@Nullable
+			CompoundTag tag = NbtIo.read(file1);
+			tag = InventoryStorage.FilterInventory(tag,current_circle);
+			player.load(tag);
+		} catch (IOException e) {
+			Core.instance.log(Level.WARNING, "Failed to save player data for "+player.getDisplayName().getString());
+		}
     }
 	
 	@Override
     public void saveData() {
-        EntityPlayer player = this.getHandle();
+        ServerPlayer player = this.getHandle();
         
         try {
-            WorldNBTStorage worldNBTStorage = player.c.getPlayerList().r;
+            PlayerDataStorage worldNBTStorage = player.server.getPlayerList().playerIo;
 
-            NBTTagCompound playerData = player.save(new NBTTagCompound());
-            setExtraData(playerData);
-
-            File file = new File(worldNBTStorage.getPlayerDir(), player.getUniqueIDString() + ".dat.tmp");
-            File file1 = new File(worldNBTStorage.getPlayerDir(), player.getUniqueIDString() + ".dat");
-
-            NBTCompressedStreamTools.a(playerData, new FileOutputStream(file));
+            CompoundTag playerData = new CompoundTag();
+            player.save(playerData);
+            setExtraData(playerData); //writes bukkit related data to tags
+            playerData = InventoryStorage.FilterInventory(playerData,current_circle);
+            File file = new File(worldNBTStorage.getPlayerDir(), player.getEncodeId() + ".dat.tmp");
+            File file1 = new File(worldNBTStorage.getPlayerDir(), player.getEncodeId() + ".dat");
+            NbtIo.write(playerData, new DataOutputStream(new FileOutputStream(file)));
 
             if (file1.exists() && !file1.delete() || !file.renameTo(file1)) {
                 Core.instance.log(Level.WARNING, "Failed to save player data for "+player.getDisplayName().getString());
