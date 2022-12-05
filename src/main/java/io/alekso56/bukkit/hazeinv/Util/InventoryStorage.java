@@ -69,28 +69,81 @@ public class InventoryStorage {
 			//the flag is not allowed, delete!
 			if(!circle.checkFlag(flag)) {
 				switch(flag) {
+				//economy and max air is not set here
 				case AIR:
+					final String airTag = "Air";
 					
-					break;
-				case ECONOMY:
+					tag.remove(airTag);
+					
+					tag.putInt(airTag, 300);
 					break;
 				case EXHAUSTION:
+					final String EXHAUSTIONtag = "foodExhaustionLevel";
+					
+					tag.remove(EXHAUSTIONtag);
+					
+					tag.putFloat(EXHAUSTIONtag, 0); //max 4
 					break;
 				case EXPERIENCE:
+					final String xpLeveltag = "XpLevel";
+					final String xpProgresstag = "XpP"; //float
+					final String xpTotaltag = "XpTotal";
+					final String EnchantmentSeedtag = "XpSeed";
+					
+					tag.remove(xpLeveltag);
+					tag.remove(xpProgresstag);
+					tag.remove(xpTotaltag);
+					tag.remove(EnchantmentSeedtag);
+					
+					tag.putInt(xpLeveltag, 0);
+					tag.putFloat(xpProgresstag, 0);
+					tag.putInt(xpTotaltag, 0);
+					tag.putInt(EnchantmentSeedtag, 0);
 					break;
 				case FALL_DISTANCE:
+					final String distancetag = "FallDistance";
+					
+					tag.remove(distancetag);
+					
+					tag.putFloat(distancetag, 0);
 					break;
 				case FIRE_TICKS:
+                    final String firetag = "Fire";
+					
+					tag.remove(firetag);
+					
+					tag.putShort(firetag, (short)-20);
 					break;
 				case FOOD_LEVEL:
+					 final String foodtag = "foodLevel";
+					 final String foodTicktag = "foodTickTimer";
+
+					 tag.remove(foodtag);
+					 tag.remove(foodTicktag);
+						
+					 tag.putInt(foodtag, 20);
+					 tag.putInt(foodTicktag,0);
 					break;
 				case HEALTH:
-					break;
-				case MAX_AIR:
+                    final String healthtag = "Health";
+					
+					tag.remove(healthtag);
+					
+					tag.putFloat(healthtag, 20);;
 					break;
 				case POTIONS:
+                    final String effecttag = "ActiveEffects";
+					
+					tag.remove(effecttag);
+					
+					//ReAdd not neccesary for this one
 					break;
 				case SATURATION:
+					 final String foodSaturationLevelTag = "foodSaturationLevel";
+					 
+					 tag.remove(foodSaturationLevelTag);
+					 
+					 tag.putFloat(foodSaturationLevelTag, 5);
 					break;
 				default:
 					break;
