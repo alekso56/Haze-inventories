@@ -11,9 +11,11 @@ import javax.annotation.Nullable;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 import io.alekso56.bukkit.hazeinv.Core;
+import io.alekso56.bukkit.hazeinv.Enums.Flag;
 import io.alekso56.bukkit.hazeinv.Events.PostInventoryChangeEvent;
 import io.alekso56.bukkit.hazeinv.Events.PreInventoryChangeEvent;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
@@ -43,7 +45,7 @@ public class VanillaPlayer extends CraftPlayer {
         try {
 			@Nullable
 			CompoundTag tag = NbtIo.read(file1);
-			tag = InventoryStorage.FilterInventory(tag,current_circle);
+			tag = InventoryStorage.FilterInventoryLoad(tag,current_circle,this.getPlayer());
 			player.load(tag);
 			PostInventoryChangeEvent PostEvent = new PostInventoryChangeEvent((Player)this.getPlayer(), previous_circle, current_circle);
             Bukkit.getPluginManager().callEvent(PostEvent);

@@ -1,11 +1,16 @@
 package io.alekso56.bukkit.hazeinv.Models;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import org.bukkit.World;
 
 import io.alekso56.bukkit.hazeinv.Enums.Flag;
 
 public class Circle {
-	String worldName;
+	UUID CircleName;
+	List<UUID> worlds = new ArrayList<UUID>();
 	boolean isPerGameMode = false;
 	boolean syncEnderChest = true;
 	boolean syncMainInventory = true;
@@ -13,12 +18,20 @@ public class Circle {
 	int flags = 0;
 
 	Circle(World name) {
-		worldName = name.getName();
+		if(!worlds.contains(name.getUID())) {
+		   worlds.add(name.getUID());
+		}
+		CircleName = UUID.randomUUID();
 		resetFlags();
 	}
 
-	public String getWorldName() {
-		return worldName;
+
+	public UUID getCircleName() {
+		return CircleName;
+	}
+
+	public List<UUID> getWorlds() {
+		return worlds;
 	}
 
 	public boolean isPerGameMode() {
@@ -37,6 +50,7 @@ public class Circle {
 		return syncArmorOnly;
 	}
 
+	//false if syncArmorOnly
 	public boolean canLoadMainInventory() {
 		return !syncArmorOnly && syncMainInventory;
 	}

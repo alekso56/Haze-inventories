@@ -7,16 +7,21 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import io.alekso56.bukkit.hazeinv.Models.PlayerData;
+import net.milkbowl.vault.economy.Economy;
 
 
 public class Core extends JavaPlugin {
-    public static Core instance;
-    //during world transition, deny any 
+	
+   public static Core instance;
+   
+   private static Economy econ = null;
+   
+   //during world transition, deny any 
     private static final HashMap<UUID, PlayerData> syncingPlayers = new HashMap<UUID, PlayerData>();
     
     @Override
@@ -27,14 +32,26 @@ public class Core extends JavaPlugin {
     @Override
     public void onEnable() {
         Path basePath = getDataFolder().toPath();
-        
+        setupEconomy();
     }
 
     @Override
     public void onDisable() {
        syncingPlayers.clear();
     }
-
+    
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        econ = rsp.getProvider();
+        return getEcon() != null;
+    }
+    
     public void log(@NotNull Level level, @NotNull String message, @Nullable Throwable e) {
         if (e == null) {
             getLogger().log(level, message);
@@ -54,4 +71,8 @@ public class Core extends JavaPlugin {
     public void info(@NotNull String message) {
         log(Level.INFO, message);
     }
+
+	public static Economy getEcon() {
+		return econ;
+	}
 }
