@@ -40,17 +40,16 @@ public class VanillaPlayer extends CraftPlayer {
         	Core.instance.log(Level.WARNING, "Failed to load player data, playerIo is not enabled.");
         	return;
         }
-        ServerPlayer player = this.getHandle();
-        File file1 = new File(storage.getPlayerDir(), player.getEncodeId() + ".dat");
         try {
+            ServerPlayer player = this.getHandle();
 			@Nullable
-			CompoundTag tag = NbtIo.read(file1);
+			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, getPlayer()));
 			tag = InventoryStorage.FilterInventoryLoad(tag,current_circle,this.getPlayer());
 			player.load(tag);
 			PostInventoryChangeEvent PostEvent = new PostInventoryChangeEvent((Player)this.getPlayer(), previous_circle, current_circle);
             Bukkit.getPluginManager().callEvent(PostEvent);
 		} catch (IOException e) {
-			Core.instance.log(Level.WARNING, "Failed to save player data for "+player.getDisplayName().getString());
+			Core.instance.log(Level.WARNING, "Failed to save player data for "+getPlayer().getUniqueId().toString());
 		}
     }
 	
@@ -66,9 +65,9 @@ public class VanillaPlayer extends CraftPlayer {
             Bukkit.getPluginManager().callEvent(PreEvent);
             player.save(playerData);
             setExtraData(playerData); //writes bukkit related data to tags
-            playerData = InventoryStorage.FilterInventory(playerData,current_circle);
+            playerData = InventoryStorage.FilterInventorySave(playerData,current_circle,previous_circle);
             File file = new File(worldNBTStorage.getPlayerDir(), player.getEncodeId() + ".dat.tmp");
-            File file1 = new File(worldNBTStorage.getPlayerDir(), player.getEncodeId() + ".dat");
+            File file1 = InventoryStorage.getFileForPlayer(current_circle, getPlayer());
             NbtIo.write(playerData, new DataOutputStream(new FileOutputStream(file)));
 
             if (file1.exists() && !file1.delete() || !file.renameTo(file1)) {

@@ -256,4 +256,9 @@ public class InventoryStorage {
 		}
 		return tag;
 	}
+
+	public static CompoundTag FilterInventorySave(CompoundTag playerData, Circle current_circle, Circle previous_circle) {
+		
+		return null;
+	}
 }
