@@ -3,6 +3,7 @@ package io.alekso56.bukkit.hazeinv.Util;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.logging.Level;
 
 import javax.annotation.Nullable;
@@ -122,7 +123,7 @@ public class InventoryStorage {
 			ListTag list = tag.getList(inventory_tag, CompoundTag.TAG_COMPOUND);
 			ListTag replacements = data.contains(inventory_tag)?data.getList(inventory_tag, CompoundTag.TAG_COMPOUND):null;
 			
-		    Iterator<Tag> listerator = list.iterator();
+		    ListIterator<Tag> listerator = list.listIterator();
 			while(listerator.hasNext()) {
 				
 				CompoundTag realtag = (CompoundTag) listerator.next();
@@ -143,13 +144,13 @@ public class InventoryStorage {
 						// instead.
 						if (replacements != null && !replacements.isEmpty()) {
 							boolean isReplaced = false;
-							Iterator<Tag> replerator = replacements.iterator();
-							while (listerator.hasNext()) {
+							ListIterator<Tag> replerator = replacements.listIterator();
+							while (replerator.hasNext()) {
 								CompoundTag replacetag = (CompoundTag) replerator.next();
 								if (replacetag.contains(Slotname)) {
 									int slotrepl = replacetag.getInt(Slotname);
 									if (slotrepl == slot) {
-										realtag = replacetag;
+										listerator.set(replacetag);
 										isReplaced = true;
 										break;
 									}
@@ -242,7 +243,7 @@ public class InventoryStorage {
 					double past_money = Core.getEcon().getBalance(player);
 					Core.getEcon().withdrawPlayer(player, past_money);
 					if(containsAndExists(data, EconomyTag)) {
-						Core.getEcon().depositPlayer(player, data.getInt(EconomyTag));
+						Core.getEcon().depositPlayer(player, data.getDouble(EconomyTag));
 					}
 					}
 					break;
@@ -257,8 +258,135 @@ public class InventoryStorage {
 		return tag;
 	}
 
-	public static CompoundTag FilterInventorySave(CompoundTag playerData, Circle current_circle, Circle previous_circle) {
-		
-		return null;
+	public static CompoundTag FilterInventorySave(CompoundTag tag, Circle current_circle, Circle previous_circle,Player player) {
+		File GlobalFile = getGlobalForPlayer(player);
+		@Nullable
+		CompoundTag data = null;
+		if (GlobalFile.exists()) {
+			try {
+				data = NbtIo.read(GlobalFile);
+			} catch (IOException e) {
+				Core.instance.getLogger().log(Level.WARNING, e.getMessage());
+			}
+		}else {
+			data = CreateDefaultSave();
+			try {
+				NbtIo.write(data, GlobalFile);
+			} catch (IOException e) {
+				Core.instance.getLogger().log(Level.WARNING,e.getMessage());
+			}
+		}
+		data.putUUID(Last_location_Tag, current_circle.getCircleName());
+		//synced to circle, not global, meaning inventory is global.
+        if(previous_circle.isSyncArmorOnly() && tag.contains(inventory_tag)){
+			
+			ListTag list = tag.getList(inventory_tag, CompoundTag.TAG_COMPOUND);
+			ListTag globalInv = data.contains(inventory_tag)?data.getList(inventory_tag, CompoundTag.TAG_COMPOUND):null;
+			
+			ListIterator<Tag> listerator = list.listIterator();
+			while(listerator.hasNext()) {
+				
+				CompoundTag realtag = (CompoundTag) listerator.next();
+				
+				if(realtag.contains(Slotname)) {
+					
+					int slot = realtag.getInt(Slotname);
+					//Optional to check for ranges instead, but prefer this method to create a dynamic filter for future use.
+					boolean isWhitelisted = false;
+					for(int toCheck : armor_slots) {
+						if(slot == toCheck) {
+							isWhitelisted = true;
+							break;
+						}
+					}
+					if (!isWhitelisted) {
+						// if slot is not in whitelist, save in same slot from global save
+						// instead.
+						if (globalInv != null && !globalInv.isEmpty()) {
+							boolean Exists = false;
+							ListIterator<Tag> replerator = globalInv.listIterator();
+							while (replerator.hasNext()) {
+								CompoundTag replacetag = (CompoundTag) replerator.next();
+								if (replacetag.contains(Slotname)) {
+									int slotrepl = replacetag.getInt(Slotname);
+									if (slotrepl == slot) {
+										replerator.set(realtag);
+										Exists = true;
+										break;
+									}
+								}
+							}
+							if(!Exists) {
+								globalInv.add(realtag);
+							}
+						} else {
+							globalInv = new ListTag();
+							globalInv.add(realtag);
+						}
+					}
+				}
+			}
+			data.put(inventory_tag,globalInv);
+			tag.put(inventory_tag, list);
+		} else if(!previous_circle.canLoadMainInventory() && tag.contains(inventory_tag)) {
+			//can't sync inventory with circle or armor items, therefore save all to global.
+			data.put(inventory_tag,containsAndExists(tag, inventory_tag)? tag.get(inventory_tag):new ListTag());
+			tag.remove(inventory_tag);
+		}
+		if(!previous_circle.isSyncEnderChest()  && tag.contains(ender_inventory_tag)) {
+			//can't sync inventory with circle or armor items, therefore save all to global.
+			data.put(ender_inventory_tag, containsAndExists(tag, ender_inventory_tag)? tag.get(ender_inventory_tag):new ListTag());
+			tag.remove(ender_inventory_tag);
+		}
+		for(Flag flag : Flag.values()) {
+			//the flag is not allowed, save to global instead!
+			if(!previous_circle.checkFlag(flag)) {
+				switch(flag) {
+				case AIR:
+					data.putInt(airTag,  containsAndExists(tag, airTag)? tag.getInt(airTag):300);
+					break;
+				case EXHAUSTION:
+					data.putFloat(EXHAUSTIONtag, containsAndExists(tag, EXHAUSTIONtag)? tag.getFloat(EXHAUSTIONtag):0);
+					break;
+				case EXPERIENCE:
+					data.putInt(xpLeveltag, containsAndExists(tag, xpLeveltag)? tag.getInt(xpLeveltag):0);
+					data.putFloat(xpProgresstag, containsAndExists(tag, xpProgresstag)? tag.getFloat(xpProgresstag):0);
+					data.putInt(xpTotaltag, containsAndExists(tag, xpTotaltag)? tag.getInt(xpTotaltag):0);
+					data.putInt(EnchantmentSeedtag, containsAndExists(tag, EnchantmentSeedtag)? tag.getInt(EnchantmentSeedtag):0);
+					break;
+				case FALL_DISTANCE:
+					data.putFloat(distancetag, containsAndExists(tag, distancetag)? tag.getFloat(distancetag):0);
+					break;
+				case FIRE_TICKS:
+					data.putShort(firetag, containsAndExists(tag, firetag)?tag.getShort(firetag):(short)-20);
+					break;
+				case FOOD_LEVEL:
+					data.putInt(foodtag, containsAndExists(tag, foodtag)? tag.getInt(foodtag):20);
+					data.putInt(foodTicktag,containsAndExists(tag, foodTicktag)? tag.getInt(foodTicktag):0);
+					break;
+				case HEALTH:
+					data.putFloat(healthtag, containsAndExists(tag, healthtag)? tag.getFloat(healthtag):20);
+					break;
+				case POTIONS:
+					data.put(effecttag, containsAndExists(tag, effecttag)? tag.getList(effecttag, CompoundTag.TAG_COMPOUND):new ListTag());
+					break;
+				case SATURATION:
+					data.putFloat(foodSaturationLevelTag, containsAndExists(tag, foodSaturationLevelTag)? tag.getFloat(foodSaturationLevelTag):5);
+					break;
+				case ECONOMY:
+					if(Core.getEcon().isEnabled()) {
+					double past_money = Core.getEcon().getBalance(player);
+					data.putDouble(EconomyTag, past_money);
+					}
+					break;
+				case MAX_AIR:
+					data.putInt(MaxairTag,((LivingEntity) player).getMaximumAir());
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		return tag;
 	}
 }

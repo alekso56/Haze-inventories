@@ -65,7 +65,7 @@ public class VanillaPlayer extends CraftPlayer {
             Bukkit.getPluginManager().callEvent(PreEvent);
             player.save(playerData);
             setExtraData(playerData); //writes bukkit related data to tags
-            playerData = InventoryStorage.FilterInventorySave(playerData,current_circle,previous_circle);
+            playerData = InventoryStorage.FilterInventorySave(playerData,current_circle,previous_circle,getPlayer());
             File file = new File(worldNBTStorage.getPlayerDir(), player.getEncodeId() + ".dat.tmp");
             File file1 = InventoryStorage.getFileForPlayer(current_circle, getPlayer());
             NbtIo.write(playerData, new DataOutputStream(new FileOutputStream(file)));
