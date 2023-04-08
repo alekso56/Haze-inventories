@@ -28,6 +28,24 @@ public class VanillaPlayer extends CraftPlayer {
 	
 	Circle current_circle;
 	Circle previous_circle;
+	
+	
+
+	public Circle getCurrent_circle() {
+		return current_circle;
+	}
+
+	public void setCurrent_circle(Circle current_circle) {
+		this.current_circle = current_circle;
+	}
+
+	public Circle getPrevious_circle() {
+		return previous_circle;
+	}
+
+	public void setPrevious_circle(Circle previous_circle) {
+		this.previous_circle = previous_circle;
+	}
 
 	public VanillaPlayer(CraftServer server, ServerPlayer entity) {
 		super(server, entity);

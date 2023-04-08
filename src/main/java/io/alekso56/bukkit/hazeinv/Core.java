@@ -1,17 +1,22 @@
 package io.alekso56.bukkit.hazeinv;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import io.alekso56.bukkit.hazeinv.Models.Circle;
+import io.alekso56.bukkit.hazeinv.Util.VanillaPlayer;
 import net.milkbowl.vault.economy.Economy;
 
 
@@ -20,9 +25,9 @@ public class Core extends JavaPlugin {
    public static Core instance;
    
    private static Economy econ = null;
-   
-   //during world transition, deny any 
-    private static final HashMap<UUID, PlayerData> syncingPlayers = new HashMap<UUID, PlayerData>();
+    
+    private static final List<Circle> circles = new ArrayList<Circle>();
+
     
     @Override
     public void onLoad() {
@@ -31,13 +36,12 @@ public class Core extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        Path basePath = getDataFolder().toPath();
         setupEconomy();
     }
 
     @Override
     public void onDisable() {
-       syncingPlayers.clear();
+    	circles.clear();
     }
     
     private boolean setupEconomy() {
@@ -75,4 +79,6 @@ public class Core extends JavaPlugin {
 	public static Economy getEcon() {
 		return econ;
 	}
+
+
 }
