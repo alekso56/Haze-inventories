@@ -6,18 +6,21 @@ import java.util.UUID;
 
 import org.bukkit.World;
 
+import com.google.gson.annotations.Expose;
+
 import io.alekso56.bukkit.hazeinv.Enums.Flag;
 
 public class Circle {
 	UUID CircleName;
 	List<UUID> worlds = new ArrayList<UUID>();
+	@Expose 
 	boolean isPerGameMode = false;
 	boolean syncEnderChest = true;
 	boolean syncMainInventory = true;
 	boolean syncArmorOnly = false;
 	int flags = 0;
 
-	Circle(World name) {
+	public Circle(World name) {
 		if(!worlds.contains(name.getUID())) {
 		   worlds.add(name.getUID());
 		}

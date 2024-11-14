@@ -2,7 +2,6 @@ package io.alekso56.bukkit.hazeinv.Util;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.logging.Level;
 
@@ -10,8 +9,6 @@ import javax.annotation.Nullable;
 
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.PlayerInventory;
 
 import io.alekso56.bukkit.hazeinv.Core;
 import io.alekso56.bukkit.hazeinv.Enums.Flag;
@@ -48,16 +45,6 @@ public class InventoryStorage {
 	static final String healthtag = "Health";
 	static final String effecttag = "ActiveEffects";
     static final String foodSaturationLevelTag = "foodSaturationLevel";
-	
-	static public PlayerInventory loadInventory(Player input) {
-		
-		return null;
-
-	}
-
-	static public Inventory loadEnderChest(Player input) {
-		return null;
-	}
 	
 	static File getFileForPlayer(Circle circle,Player player){
 		File PlayerFolder = new File(Core.instance.getDataFolder(), "saveData"+File.separatorChar+player.getUniqueId());
@@ -105,14 +92,14 @@ public class InventoryStorage {
 		CompoundTag data = null;
 		if (GlobalFile.exists()) {
 			try {
-				data = NbtIo.read(GlobalFile);
+				data = NbtIo.read(GlobalFile.toPath());
 			} catch (IOException e) {
 				Core.instance.getLogger().log(Level.WARNING, e.getMessage());
 			}
 		}else {
 			data = CreateDefaultSave();
 			try {
-				NbtIo.write(data, GlobalFile);
+				NbtIo.write(data, GlobalFile.toPath());
 			} catch (IOException e) {
 				Core.instance.getLogger().log(Level.WARNING,e.getMessage());
 			}
@@ -264,14 +251,14 @@ public class InventoryStorage {
 		CompoundTag data = null;
 		if (GlobalFile.exists()) {
 			try {
-				data = NbtIo.read(GlobalFile);
+				data = NbtIo.read(GlobalFile.toPath());
 			} catch (IOException e) {
 				Core.instance.getLogger().log(Level.WARNING, e.getMessage());
 			}
 		}else {
 			data = CreateDefaultSave();
 			try {
-				NbtIo.write(data, GlobalFile);
+				NbtIo.write(data, GlobalFile.toPath());
 			} catch (IOException e) {
 				Core.instance.getLogger().log(Level.WARNING,e.getMessage());
 			}
