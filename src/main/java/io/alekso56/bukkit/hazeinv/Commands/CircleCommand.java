@@ -94,9 +94,23 @@ public class CircleCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    private void handleRemoveFlag(Player player, String string, String string2) {
-		// TODO Auto-generated method stub
-		
+    private void handleRemoveFlag(Player player, String circleName, String flagName) {
+    	 Circle circle = CircleAPI.getFromName(UUID.fromString(circleName));
+         
+         // Check if the circle exists
+         if (circle == null) {
+             player.sendMessage("Circle " + circleName + " does not exist.");
+             return;
+         }
+         
+         try {
+             Flag flag = Flag.valueOf(flagName.toUpperCase());
+             circle.removeFlag(flag);
+             player.sendMessage("Flag " + flagName + "removed on circle " + circleName + ".");
+             
+         } catch (IllegalArgumentException e) {
+             player.sendMessage("Invalid flag. Available flags are: " + Arrays.toString(Flag.values()));
+         }
 	}
 
 	private void handleAddFlag(Player player, String circleName, String flagName) {
