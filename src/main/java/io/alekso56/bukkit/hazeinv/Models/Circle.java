@@ -1,7 +1,9 @@
 package io.alekso56.bukkit.hazeinv.Models;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.World;
@@ -26,6 +28,31 @@ public class Circle {
 		}
 		CircleName = UUID.randomUUID();
 		resetFlags();
+	}
+
+
+	public Circle() {
+		CircleName = UUID.randomUUID();
+		resetFlags();
+	}
+	
+	public void setPerGameMode(boolean isPerGameMode) {
+		this.isPerGameMode = isPerGameMode;
+	}
+
+
+	public void setSyncEnderChest(boolean syncEnderChest) {
+		this.syncEnderChest = syncEnderChest;
+	}
+
+
+	public void setSyncMainInventory(boolean syncMainInventory) {
+		this.syncMainInventory = syncMainInventory;
+	}
+
+
+	public void setSyncArmorOnly(boolean syncArmorOnly) {
+		this.syncArmorOnly = syncArmorOnly;
 	}
 
 
@@ -98,5 +125,15 @@ public class Circle {
 			int_flags[i] = (flags & (1 << i)) != 0;
 		}
 		return int_flags;
+	}
+
+	public Set<Flag> listFlags() {
+		Set<Flag> activeFlags = new HashSet<Flag>();
+		for (Flag target : Flag.values()) {
+			if(checkFlag(target)) {
+				activeFlags.add(target);
+			}
+		}
+		return activeFlags;
 	}
 }
