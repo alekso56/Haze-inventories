@@ -14,6 +14,7 @@ import io.alekso56.bukkit.hazeinv.Enums.Flag;
 
 public class Circle {
 	UUID CircleName;
+	String friendlyName = "";
 	List<UUID> worlds = new ArrayList<UUID>();
 	@Expose 
 	boolean isPerGameMode = false;
