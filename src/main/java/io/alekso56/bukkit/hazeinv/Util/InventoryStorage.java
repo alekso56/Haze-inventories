@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import javax.annotation.Nullable;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.craftbukkit.v1_21_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_21_R1.inventory.CraftInventory;
@@ -25,6 +26,7 @@ import io.alekso56.bukkit.hazeinv.Events.PostInventoryChangeEvent;
 import io.alekso56.bukkit.hazeinv.Events.PreInventoryChangeEvent;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
@@ -131,6 +133,57 @@ public class InventoryStorage {
 		return new File(GlobalFolder, player.getUniqueId().toString() + ".dat");
 	}
 
+	public Location loadPosition(Circle current_circle, OfflinePlayer player) {
+		CraftServer server = (CraftServer) Bukkit.getServer();
+		@Nullable
+		PlayerDataStorage storage = server.getHandle().playerIo;
+		if (storage == null) {
+			Core.instance.log(Level.WARNING, "Failed to load player data, playerIo is not enabled.");
+			return null;
+		}
+		try {
+			@Nullable
+			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player).toPath());
+			if (tag == null || !containsAndExists(tag, "Pos")) {
+				return null;
+			}
+			String worldname = tag.getString("Dimension").replace("minecraft:", "");
+			ListTag Pos = tag.getList("Pos", CompoundTag.TAG_DOUBLE);
+			double x = Pos.getDouble(0);
+			double y = Pos.getDouble(1);
+			double z = Pos.getDouble(2);
+            return new Location(Bukkit.getWorld(worldname),x,y,z);
+		} catch (IOException e) {
+			Core.instance.log(Level.WARNING, "Failed to load player data for " + player.getUniqueId().toString());
+		}
+		return null;
+	}
+	public boolean savePosition(Circle current_circle, OfflinePlayer player,Location loc) {
+		CraftServer server = (CraftServer) Bukkit.getServer();
+		@Nullable
+		PlayerDataStorage storage = server.getHandle().playerIo;
+		if (storage == null) {
+			Core.instance.log(Level.WARNING, "Failed to load player data, playerIo is not enabled.");
+			return false;
+		}
+		try {
+			@Nullable
+			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player).toPath());
+			if (tag == null) {
+				return false;
+			}
+			ListTag Pos = new ListTag();
+			Pos.add(DoubleTag.valueOf(loc.getX()));
+			Pos.add(DoubleTag.valueOf(loc.getY()));
+			Pos.add(DoubleTag.valueOf(loc.getZ()));
+			tag.put("Pos", Pos);
+			tag.putString("Dimension", "minecraft:"+loc.getWorld().getName());
+            return true;
+		} catch (IOException e) {
+			Core.instance.log(Level.WARNING, "Failed to load player data for " + player.getUniqueId().toString());
+		}
+		return false;
+	}
 	public Inventory loadData(Circle current_circle, OfflinePlayer player, boolean isEnderChest) {
 		CraftServer server = (CraftServer) Bukkit.getServer();
 		@Nullable

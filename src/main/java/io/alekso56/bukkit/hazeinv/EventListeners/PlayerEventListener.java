@@ -48,10 +48,6 @@ public class PlayerEventListener implements Listener {
 	    }
 	}
 	
-	void onDeathEvent(PlayerDeathEvent e) {
-		
-	}
-	
 	//exploitable
 	void onGamemodeChangeEvent(PlayerGameModeChangeEvent e) {
 		
@@ -65,14 +61,6 @@ public class PlayerEventListener implements Listener {
 	@EventHandler
 	void onPlayerJoinEvent(PlayerJoinEvent e) {
         Core.instance.players.put(e.getPlayer(), InventoryConversion.wrap(e.getPlayer(), CircleAPI.getFromWorld(e.getPlayer().getWorld())));
-	}
-	
-	void onPlayerRespawnEvent(PlayerRespawnEvent e) {
-		
-	}
-	
-	void onPlayerSpawnLocationEvent(PlayerSpawnLocationEvent e) {
-		
 	}
 
 }
