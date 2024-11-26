@@ -50,7 +50,7 @@ public class VanillaPlayer {
 		this.previous_circle = previous_circle;
 	}
 
-    public void loadData() {
+    public void loadData(LabelTag type) {
         @Nullable PlayerDataStorage storage = server.getHandle().playerIo;
         if(storage == null) {
         	Core.instance.log(Level.WARNING, "Failed to load player data, playerIo is not enabled.");
@@ -58,11 +58,11 @@ public class VanillaPlayer {
         }
         try {
 			@Nullable
-			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player).toPath());
+			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player.getUniqueId(),type).toPath());
 			if(tag == null) {
 				tag = InventoryStorage.CreateDefaultSave();
 			}
-			tag = InventoryStorage.FilterInventoryLoad(tag,current_circle,player);
+			tag = InventoryStorage.FilterInventoryLoad(tag,current_circle,player.getUniqueId(),type);
 			player.getHandle().load(tag);	
 			PostInventoryChangeEvent PostEvent = new PostInventoryChangeEvent(player, previous_circle, current_circle);
             Bukkit.getPluginManager().callEvent(PostEvent);
@@ -71,7 +71,7 @@ public class VanillaPlayer {
 		}
     }
 	
-    public void saveData() {
+    public void saveData(LabelTag type) {
         ServerPlayer player_s = player.getHandle();
         
         try {
@@ -82,7 +82,7 @@ public class VanillaPlayer {
             Bukkit.getPluginManager().callEvent(PreEvent);
             player_s.saveWithoutId(playerData);
             player.setExtraData(playerData); //writes bukkit related data to tags
-            playerData = InventoryStorage.FilterInventorySave(playerData,current_circle,previous_circle,player);
+            playerData = InventoryStorage.FilterInventorySave(playerData,current_circle,previous_circle,player.getUniqueId(),type);
             
             File file = new File(worldNBTStorage.getPlayerDir(), player_s.getEncodeId() + ".dat.tmp");
             if(file.exists()) {
@@ -91,7 +91,7 @@ public class VanillaPlayer {
             file.createNewFile();
             
             DataOutputStream output = new DataOutputStream(new FileOutputStream(file));
-            File file1 = InventoryStorage.getFileForPlayer(current_circle, player);
+            File file1 = InventoryStorage.getFileForPlayer(current_circle, player.getUniqueId(),type);
             
             NbtIo.write(playerData, output);
             output.close();

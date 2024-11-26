@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ListIterator;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Level;
 
 import javax.annotation.Nullable;
@@ -116,24 +117,24 @@ public class InventoryStorage {
 	static final String effecttag = "ActiveEffects";
 	static final String foodSaturationLevelTag = "foodSaturationLevel";
 
-	static File getFileForPlayer(Circle circle, OfflinePlayer player) {
+	static File getFileForPlayer(Circle circle, UUID player,LabelTag type) {
 		File PlayerFolder = new File(Core.instance.getDataFolder(),
-				"saveData" + File.separatorChar + player.getUniqueId());
+				"saveData" + File.separatorChar + player);
 		if (!PlayerFolder.exists())
 			PlayerFolder.mkdirs();
 
-		return new File(PlayerFolder, circle.getCircleName().toString() + ".dat");
+		return new File(PlayerFolder, circle.getCircleName().toString() + type.name()+".dat");
 	}
 
-	static File getGlobalForPlayer(OfflinePlayer player) {
+	static File getGlobalForPlayer(UUID player,LabelTag type) {
 		File GlobalFolder = new File(Core.instance.getDataFolder(), "saveData" + File.separatorChar + "GLOBAL");
 		if (!GlobalFolder.exists())
 			GlobalFolder.mkdirs();
 
-		return new File(GlobalFolder, player.getUniqueId().toString() + ".dat");
+		return new File(GlobalFolder, player.toString()  +"-"+type.name()+".dat");
 	}
 
-	public Location loadPosition(Circle current_circle, OfflinePlayer player) {
+	public static Location loadPosition(Circle current_circle, UUID player) {
 		CraftServer server = (CraftServer) Bukkit.getServer();
 		@Nullable
 		PlayerDataStorage storage = server.getHandle().playerIo;
@@ -143,7 +144,7 @@ public class InventoryStorage {
 		}
 		try {
 			@Nullable
-			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player).toPath());
+			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player,LabelTag.CIRCLE).toPath());
 			if (tag == null || !containsAndExists(tag, "Pos")) {
 				return null;
 			}
@@ -154,11 +155,11 @@ public class InventoryStorage {
 			double z = Pos.getDouble(2);
             return new Location(Bukkit.getWorld(worldname),x,y,z);
 		} catch (IOException e) {
-			Core.instance.log(Level.WARNING, "Failed to load player data for " + player.getUniqueId().toString());
+			Core.instance.log(Level.WARNING, "Failed to load player data for " + player.toString());
 		}
 		return null;
 	}
-	public boolean savePosition(Circle current_circle, OfflinePlayer player,Location loc) {
+	public static boolean savePosition(Circle current_circle, UUID player,Location loc) {
 		CraftServer server = (CraftServer) Bukkit.getServer();
 		@Nullable
 		PlayerDataStorage storage = server.getHandle().playerIo;
@@ -168,7 +169,7 @@ public class InventoryStorage {
 		}
 		try {
 			@Nullable
-			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player).toPath());
+			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player,LabelTag.CIRCLE).toPath());
 			if (tag == null) {
 				return false;
 			}
@@ -180,11 +181,11 @@ public class InventoryStorage {
 			tag.putString("Dimension", "minecraft:"+loc.getWorld().getName());
             return true;
 		} catch (IOException e) {
-			Core.instance.log(Level.WARNING, "Failed to load player data for " + player.getUniqueId().toString());
+			Core.instance.log(Level.WARNING, "Failed to load player data for " + player.toString());
 		}
 		return false;
 	}
-	public Inventory loadData(Circle current_circle, OfflinePlayer player, boolean isEnderChest) {
+	public static Inventory loadData(Circle current_circle, UUID player, boolean isEnderChest,LabelTag type) {
 		CraftServer server = (CraftServer) Bukkit.getServer();
 		@Nullable
 		PlayerDataStorage storage = server.getHandle().playerIo;
@@ -194,11 +195,11 @@ public class InventoryStorage {
 		}
 		try {
 			@Nullable
-			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player).toPath());
+			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player,type).toPath());
 			if (tag == null) {
 				tag = InventoryStorage.CreateDefaultSave();
 			}
-			tag = InventoryStorage.FilterInventoryLoad(tag, current_circle, player);
+			tag = InventoryStorage.FilterInventoryLoad(tag, current_circle, player,type);
 			ListTag list = tag.getList(isEnderChest ? ender_inventory_tag : inventory_tag, CompoundTag.TAG_COMPOUND);
 
 			Inventory inventory = Bukkit.createInventory(null, 45, "Example");
@@ -234,45 +235,46 @@ public class InventoryStorage {
 					}
 				}
 			}
+			return inventory;
 		} catch (IOException e) {
-			Core.instance.log(Level.WARNING, "Failed to load player data for " + player.getUniqueId().toString());
+			Core.instance.log(Level.WARNING, "Failed to load player data for " + player.toString());
 		}
 		return null;
 	}
 
-	public void saveData(Circle current_circle, OfflinePlayer player, Inventory inv, boolean isEnderChest) {
+	public static void saveData(Circle current_circle, UUID player, Inventory inv, boolean isEnderChest,LabelTag type) {
 		CraftServer server = (CraftServer) Bukkit.getServer();
 		CraftInventory inventory = (CraftInventory) inv;
 		try {
 
 			PlayerDataStorage worldNBTStorage = server.getHandle().playerIo;
-			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player).toPath());
+			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player,type).toPath());
 			if (tag == null) {
 				tag = InventoryStorage.CreateDefaultSave();
 			}
-			tag = InventoryStorage.FilterInventoryLoad(tag, current_circle, player);
+			tag = InventoryStorage.FilterInventoryLoad(tag, current_circle, player,type);
 			tag.put(isEnderChest ? ender_inventory_tag : inventory_tag, inventoryToNBT(inventory));
-			tag = InventoryStorage.FilterInventorySave(tag, current_circle, current_circle, player);
+			tag = InventoryStorage.FilterInventorySave(tag, current_circle, current_circle, player,type);
 
-			File file = new File(worldNBTStorage.getPlayerDir(), player.getUniqueId() + ".dat.tmp");
+			File file = new File(worldNBTStorage.getPlayerDir(), player + ".dat."+type.name()+".tmp");
 			if (file.exists()) {
 				file.delete();
 			}
 			file.createNewFile();
 
 			DataOutputStream output = new DataOutputStream(new FileOutputStream(file));
-			File file1 = InventoryStorage.getFileForPlayer(current_circle, player);
+			File file1 = InventoryStorage.getFileForPlayer(current_circle, player,type);
 
 			NbtIo.write(tag, output);
 			output.close();
 
 			if (file1.exists() && !file1.delete() || !file.renameTo(file1)) {
-				Core.instance.log(Level.WARNING, "Failed to save player data for " + player.getName());
+				Core.instance.log(Level.WARNING, "Failed to save player data for " + player);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			Core.instance.log(Level.WARNING, "Failed to save player data for " + player.getName());
+			Core.instance.log(Level.WARNING, "Failed to save player data for " + player);
 		}
 	}
 
@@ -335,8 +337,8 @@ public class InventoryStorage {
 	}
 
 	// global filter LOAD ONLY!
-	static CompoundTag FilterInventoryLoad(CompoundTag tag, Circle circle, OfflinePlayer player) {
-		File GlobalFile = getGlobalForPlayer(player);
+	static CompoundTag FilterInventoryLoad(CompoundTag tag, Circle circle, UUID player,LabelTag type) {
+		File GlobalFile = getGlobalForPlayer(player,type);
 		@Nullable
 		CompoundTag data = null;
 		if (GlobalFile.exists()) {
@@ -492,15 +494,16 @@ public class InventoryStorage {
 					break;
 				case ECONOMY:
 					if (Core.getEcon().isEnabled()) {
-						double past_money = Core.getEcon().getBalance(player);
-						Core.getEcon().withdrawPlayer(player, past_money);
+						OfflinePlayer player2 = Bukkit.getOfflinePlayer(player);
+						double past_money = Core.getEcon().getBalance(player2);
+						Core.getEcon().withdrawPlayer(player2, past_money);
 						if (containsAndExists(data, EconomyTag)) {
-							Core.getEcon().depositPlayer(player, data.getDouble(EconomyTag));
+							Core.getEcon().depositPlayer(player2, data.getDouble(EconomyTag));
 						}
 					}
 					break;
 				case MAX_AIR:
-					((LivingEntity) player)
+					((LivingEntity) Bukkit.getOfflinePlayer(player))
 							.setMaximumAir(containsAndExists(data, MaxairTag) ? data.getInt(MaxairTag) : 300);
 					break;
 				default:
@@ -512,8 +515,8 @@ public class InventoryStorage {
 	}
 
 	public static CompoundTag FilterInventorySave(CompoundTag tag, Circle current_circle, Circle previous_circle,
-			OfflinePlayer player) {
-		File GlobalFile = getGlobalForPlayer(player);
+			UUID player,LabelTag type) {
+		File GlobalFile = getGlobalForPlayer(player,type);
 		@Nullable
 		CompoundTag data = null;
 		if (GlobalFile.exists()) {
@@ -644,12 +647,12 @@ public class InventoryStorage {
 					break;
 				case ECONOMY:
 					if (Core.getEcon().isEnabled()) {
-						double past_money = Core.getEcon().getBalance(player);
+						double past_money = Core.getEcon().getBalance(Bukkit.getOfflinePlayer(player));
 						data.putDouble(EconomyTag, past_money);
 					}
 					break;
 				case MAX_AIR:
-					data.putInt(MaxairTag, ((LivingEntity) player).getMaximumAir());
+					data.putInt(MaxairTag, ((LivingEntity) Bukkit.getOfflinePlayer(player)).getMaximumAir());
 					break;
 				default:
 					break;

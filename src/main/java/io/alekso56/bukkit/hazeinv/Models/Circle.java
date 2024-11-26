@@ -14,7 +14,7 @@ import io.alekso56.bukkit.hazeinv.Enums.Flag;
 
 public class Circle {
 	UUID CircleName;
-	String friendlyName = "";
+	private String friendlyName = "";
 	List<UUID> worlds = new ArrayList<UUID>();
 	@Expose 
 	boolean isPerGameMode = false;
@@ -137,5 +137,15 @@ public class Circle {
 			}
 		}
 		return activeFlags;
+	}
+
+
+	public String getFriendlyName() {
+		return friendlyName;
+	}
+
+
+	public void setFriendlyName(String friendlyName) {
+		this.friendlyName = friendlyName;
 	}
 }

@@ -17,6 +17,7 @@ import io.alekso56.bukkit.hazeinv.Core;
 import io.alekso56.bukkit.hazeinv.API.CircleAPI;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
 import io.alekso56.bukkit.hazeinv.Util.InventoryConversion;
+import io.alekso56.bukkit.hazeinv.Util.LabelTag;
 import io.alekso56.bukkit.hazeinv.Util.VanillaPlayer;
 
 public class PlayerEventListener implements Listener {
@@ -33,14 +34,14 @@ public class PlayerEventListener implements Listener {
 		VanillaPlayer adjuster = Core.instance.players.get(e.getPlayer());
 		adjuster.setPrevious_circle(adjuster.getCurrent_circle());
 		adjuster.setCurrent_circle(to_circle);
-		adjuster.loadData();
+		adjuster.loadData(to_circle.isPerGameMode() ? LabelTag.CIRCLE_GAMEMODE : LabelTag.CIRCLE);
 	}
 	
 	@EventHandler
 	public void onPlayerTeleportEvent(PlayerTeleportEvent e) {
 	    if(!e.getFrom().getWorld().getName().equals(e.getTo().getWorld().getName())){
 	        VanillaPlayer adjuster = Core.instance.players.get(e.getPlayer());
-	        adjuster.saveData();
+	        adjuster.saveData(adjuster.getPrevious_circle().isPerGameMode()? LabelTag.CIRCLE_GAMEMODE : LabelTag.CIRCLE);
 	        e.getPlayer().getInventory().clear();
 	        e.getPlayer().getEnderChest().clear();
 	        e.getPlayer().getActivePotionEffects().clear();
