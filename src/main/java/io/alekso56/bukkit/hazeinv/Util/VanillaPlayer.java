@@ -1,8 +1,5 @@
 package io.alekso56.bukkit.hazeinv.Util;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.logging.Level;
 
@@ -75,30 +72,13 @@ public class VanillaPlayer {
         ServerPlayer player_s = player.getHandle();
         
         try {
-            PlayerDataStorage worldNBTStorage = player_s.server.getPlayerList().playerIo;
-
             CompoundTag playerData = new CompoundTag();
             PreInventoryChangeEvent PreEvent = new PreInventoryChangeEvent(player, previous_circle, current_circle);
             Bukkit.getPluginManager().callEvent(PreEvent);
             player_s.saveWithoutId(playerData);
             player.setExtraData(playerData); //writes bukkit related data to tags
-            playerData = InventoryStorage.FilterInventorySave(playerData,current_circle,previous_circle,player.getUniqueId(),type);
             
-            File file = new File(worldNBTStorage.getPlayerDir(), player_s.getEncodeId() + ".dat.tmp");
-            if(file.exists()) {
-            	file.delete();
-            }
-            file.createNewFile();
-            
-            DataOutputStream output = new DataOutputStream(new FileOutputStream(file));
-            File file1 = InventoryStorage.getFileForPlayer(current_circle, player.getUniqueId(),type);
-            
-            NbtIo.write(playerData, output);
-            output.close();
-            
-            if (file1.exists() && !file1.delete() || !file.renameTo(file1)) {
-                Core.instance.log(Level.WARNING, "Failed to save player data for "+player.getDisplayName());
-            }
+            InventoryStorage.writeData(current_circle, player.getUniqueId(), type, playerData);
 
         } catch (Exception e) {
         	e.printStackTrace();

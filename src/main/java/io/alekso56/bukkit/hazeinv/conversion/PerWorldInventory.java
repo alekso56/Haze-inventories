@@ -1,35 +1,16 @@
 package io.alekso56.bukkit.hazeinv.conversion;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.util.io.BukkitObjectInputStream;
-import org.bukkit.util.io.BukkitObjectOutputStream;
-import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 import io.alekso56.bukkit.hazeinv.Models.Circle;
 import io.alekso56.bukkit.hazeinv.Util.InventoryStorage;
-import io.alekso56.bukkit.hazeinv.Util.VanillaPlayer;
 import me.ebonjaeger.perworldinventory.Group;
-import me.ebonjaeger.perworldinventory.GroupManager;
-import me.ebonjaeger.perworldinventory.configuration.PluginSettings;
-import me.ebonjaeger.perworldinventory.configuration.Settings;
-import me.ebonjaeger.perworldinventory.configuration.configme.SettingsManager;
-import me.ebonjaeger.perworldinventory.configuration.configme.SettingsManagerImpl;
 import me.ebonjaeger.perworldinventory.libs.json.JSONArray;
 import me.ebonjaeger.perworldinventory.libs.json.JSONObject;
 import me.ebonjaeger.perworldinventory.libs.json.parser.JSONParser;

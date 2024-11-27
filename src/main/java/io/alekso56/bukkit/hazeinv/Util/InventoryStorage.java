@@ -18,20 +18,16 @@ import org.bukkit.craftbukkit.v1_21_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_21_R1.inventory.CraftInventory;
 import org.bukkit.craftbukkit.v1_21_R1.inventory.CraftItemStack;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
 import io.alekso56.bukkit.hazeinv.Core;
 import io.alekso56.bukkit.hazeinv.Enums.Flag;
-import io.alekso56.bukkit.hazeinv.Events.PostInventoryChangeEvent;
-import io.alekso56.bukkit.hazeinv.Events.PreInventoryChangeEvent;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.PlayerDataStorage;
 
@@ -243,11 +239,8 @@ public class InventoryStorage {
 	}
 
 	public static void saveData(Circle current_circle, UUID player, Inventory inv, boolean isEnderChest,LabelTag type) {
-		CraftServer server = (CraftServer) Bukkit.getServer();
 		CraftInventory inventory = (CraftInventory) inv;
 		try {
-
-			PlayerDataStorage worldNBTStorage = server.getHandle().playerIo;
 			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player,type).toPath());
 			if (tag == null) {
 				tag = InventoryStorage.CreateDefaultSave();
@@ -255,6 +248,20 @@ public class InventoryStorage {
 			tag = InventoryStorage.FilterInventoryLoad(tag, current_circle, player,type);
 			tag.put(isEnderChest ? ender_inventory_tag : inventory_tag, inventoryToNBT(inventory));
 			tag = InventoryStorage.FilterInventorySave(tag, current_circle, current_circle, player,type);
+
+			writeData(current_circle,player,type,tag);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			Core.instance.log(Level.WARNING, "Failed to save player data for " + player);
+		}
+	}
+	
+	public static void writeData(Circle current_circle,UUID player, LabelTag type,CompoundTag tag) {
+		CraftServer server = (CraftServer) Bukkit.getServer();
+		try {
+
+			PlayerDataStorage worldNBTStorage = server.getHandle().playerIo;
 
 			File file = new File(worldNBTStorage.getPlayerDir(), player + ".dat."+type.name()+".tmp");
 			if (file.exists()) {
@@ -661,4 +668,6 @@ public class InventoryStorage {
 		}
 		return tag;
 	}
+
+
 }

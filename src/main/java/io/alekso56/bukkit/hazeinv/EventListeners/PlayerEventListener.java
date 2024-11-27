@@ -3,15 +3,12 @@ package io.alekso56.bukkit.hazeinv.EventListeners;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 import io.alekso56.bukkit.hazeinv.Core;
 import io.alekso56.bukkit.hazeinv.API.CircleAPI;
