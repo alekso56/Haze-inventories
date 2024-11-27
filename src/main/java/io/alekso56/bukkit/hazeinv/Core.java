@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import com.onarandombox.MultiverseCore.MultiverseCore;
 
 import io.alekso56.bukkit.hazeinv.EventListeners.PlayerEventListener;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
@@ -51,6 +52,8 @@ public class Core extends JavaPlugin {
     public final HashMap<Player,VanillaPlayer> players = new  HashMap<Player,VanillaPlayer>();
 
 	private File CircleDir;
+
+	public static MultiverseCore mwcore;
 	
 	static Gson gson = new Gson();
 
@@ -69,6 +72,7 @@ public class Core extends JavaPlugin {
         setupEconomy();
         loadCircleData();
         getServer().getPluginManager().registerEvents(new PlayerEventListener(), this);
+        mwcore = (MultiverseCore) getServer().getPluginManager().getPlugin("Multiverse-Core");
     }
 
 	@Override

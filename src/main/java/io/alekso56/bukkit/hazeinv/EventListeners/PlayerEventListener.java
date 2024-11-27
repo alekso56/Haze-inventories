@@ -1,5 +1,6 @@
 package io.alekso56.bukkit.hazeinv.EventListeners;
 
+import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -31,14 +32,16 @@ public class PlayerEventListener implements Listener {
 		VanillaPlayer adjuster = Core.instance.players.get(e.getPlayer());
 		adjuster.setPrevious_circle(adjuster.getCurrent_circle());
 		adjuster.setCurrent_circle(to_circle);
-		adjuster.loadData(to_circle.isPerGameMode() ? LabelTag.CIRCLE_GAMEMODE : LabelTag.CIRCLE);
+		GameMode targetGameMode = Core.mwcore.getMVWorldManager().getMVWorld(world).getGameMode();
+		adjuster.loadData(to_circle.isPerGameMode() ?LabelTag.getOf(targetGameMode) : LabelTag.CIRCLE);
 	}
 	
 	@EventHandler
 	public void onPlayerTeleportEvent(PlayerTeleportEvent e) {
 	    if(!e.getFrom().getWorld().getName().equals(e.getTo().getWorld().getName())){
 	        VanillaPlayer adjuster = Core.instance.players.get(e.getPlayer());
-	        adjuster.saveData(adjuster.getPrevious_circle().isPerGameMode()? LabelTag.CIRCLE_GAMEMODE : LabelTag.CIRCLE);
+	        GameMode targetGameMode = Core.mwcore.getMVWorldManager().getMVWorld(e.getTo().getWorld()).getGameMode();
+	        adjuster.saveData(adjuster.getPrevious_circle().isPerGameMode()? LabelTag.getOf(targetGameMode): LabelTag.CIRCLE);
 	        e.getPlayer().getInventory().clear();
 	        e.getPlayer().getEnderChest().clear();
 	        e.getPlayer().getActivePotionEffects().clear();
