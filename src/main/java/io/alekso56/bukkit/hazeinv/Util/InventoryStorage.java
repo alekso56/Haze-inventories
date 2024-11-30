@@ -33,9 +33,9 @@ import net.minecraft.world.level.storage.PlayerDataStorage;
 
 public class InventoryStorage {
 
-	static final String inventory_tag = "Inventory";
+	public static final String inventory_tag = "Inventory";
 
-	static final String ender_inventory_tag = "EnderItems";
+	public static final String ender_inventory_tag = "EnderItems";
 
 	public enum slotmapping {
 		HEAD(103, 0), CHEST(102, 1), LEG(101, 2), FEET(100, 3), SHIELD(-106, 4), INVENTORY_START(9, 9),
@@ -59,13 +59,13 @@ public class InventoryStorage {
 
 		public static boolean isInInventory(int slot, boolean useNbt) {
 			int startSlot = useNbt ? INVENTORY_START.nbtSlot : INVENTORY_START.chestSlot;
-			int endSlot = useNbt ? FEET.nbtSlot : FEET.chestSlot;
+			int endSlot = useNbt ? FEET.nbtSlot : HOTBAR_START.chestSlot;
 			return slot >= startSlot && slot < endSlot;
 		}
 
 		public static boolean isInHotbar(int slot, boolean useNbt) {
 			int startSlot = useNbt ? HOTBAR_START.nbtSlot : HOTBAR_START.chestSlot;
-			int endSlot = useNbt ? INVENTORY_START.nbtSlot : INVENTORY_START.chestSlot;
+			int endSlot = useNbt ? INVENTORY_START.nbtSlot : 45;
 			return slot >= startSlot && slot < endSlot;
 		}
 
@@ -241,12 +241,14 @@ public class InventoryStorage {
 	public static void saveData(Circle current_circle, UUID player, Inventory inv, boolean isEnderChest,LabelTag type) {
 		CraftInventory inventory = (CraftInventory) inv;
 		try {
-			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player,type).toPath());
+			File playerFile = InventoryStorage.getFileForPlayer(current_circle, player,type);
+			
+			CompoundTag tag = playerFile.exists()?NbtIo.read(playerFile.toPath()):null;
 			if (tag == null) {
 				tag = InventoryStorage.CreateDefaultSave();
 			}
 			tag = InventoryStorage.FilterInventoryLoad(tag, current_circle, player,type);
-			tag.put(isEnderChest ? ender_inventory_tag : inventory_tag, inventoryToNBT(inventory));
+			tag.put(isEnderChest ? ender_inventory_tag : inventory_tag, inventoryToNBTOffsetStartBy5(inventory,isEnderChest));
 			tag = InventoryStorage.FilterInventorySave(tag, current_circle, current_circle, player,type);
 
 			writeData(current_circle,player,type,tag);
@@ -285,7 +287,8 @@ public class InventoryStorage {
 		}
 	}
 
-	public static ListTag inventoryToNBT(Inventory inventory) {
+	//Make sure inventory is offset by 5
+	public static ListTag inventoryToNBTOffsetStartBy5(Inventory inventory, boolean enderchest) {
 		ListTag itemsList = new ListTag();
 
 		for (int i = 0; i < inventory.getSize(); i++) {
@@ -296,23 +299,26 @@ public class InventoryStorage {
 
 				CompoundTag itemTag = new CompoundTag();
 				nmsItem.save(null, itemTag);
-				slotmapping mapping = slotmapping.getMapping(i, false);
-				switch (mapping) {
-				case LEG:
-				case SHIELD:
-				case CHEST:
-				case FEET:
-				case HEAD:
-					itemTag.putInt("Slot", mapping.getNbtSlot());
-					break;
-				case HOTBAR_START:
-				case INVENTORY_START:
+				if (enderchest) {
 					itemTag.putInt("Slot", i);
-					break;
-				default:
-					break;
+				} else {
+					slotmapping mapping = slotmapping.getMapping(i, false);
+					switch (mapping) {
+					case LEG:
+					case SHIELD:
+					case CHEST:
+					case FEET:
+					case HEAD:
+						itemTag.putInt("Slot", mapping.getNbtSlot());
+						break;
+					case HOTBAR_START:
+					case INVENTORY_START:
+						itemTag.putInt("Slot", i);
+						break;
+					default:
+						break;
+					}
 				}
-
 				itemsList.add(itemTag);
 			}
 		}
@@ -323,7 +329,7 @@ public class InventoryStorage {
 		return tag != null && tag.contains(input);
 	}
 
-	static CompoundTag CreateDefaultSave() {
+	public static CompoundTag CreateDefaultSave() {
 		CompoundTag save = new CompoundTag();
 		save.put(inventory_tag, new ListTag());
 		save.put(ender_inventory_tag, new ListTag());
