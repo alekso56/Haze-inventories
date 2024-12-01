@@ -3,6 +3,8 @@ package io.alekso56.bukkit.hazeinv.Util;
 import org.bukkit.GameMode;
 import org.bukkit.plugin.Plugin;
 
+import io.alekso56.bukkit.hazeinv.conversion.PerWorldInventory.FileTypes;
+
 public enum LabelTag {
 	CIRCLE, 
 	CIRCLE_CREATIVE, 
@@ -22,6 +24,19 @@ public enum LabelTag {
 
 	public static LabelTag getOf(GameMode targetGameMode) {
 		switch(targetGameMode) {
+		case ADVENTURE:
+			return LabelTag.CIRCLE_ADVENTURE;
+		case CREATIVE:
+			return LabelTag.CIRCLE_CREATIVE;
+		case SURVIVAL:
+			return LabelTag.CIRCLE_SURVIVAL;
+		default:
+			return LabelTag.CIRCLE;
+		}
+	}
+
+	public static LabelTag getOf(FileTypes filetype) {
+		switch(filetype) {
 		case ADVENTURE:
 			return LabelTag.CIRCLE_ADVENTURE;
 		case CREATIVE:
