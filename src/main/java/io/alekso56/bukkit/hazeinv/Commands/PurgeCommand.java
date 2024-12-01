@@ -1,24 +1,11 @@
 package io.alekso56.bukkit.hazeinv.Commands;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-
-import io.alekso56.bukkit.hazeinv.Core;
-import io.alekso56.bukkit.hazeinv.API.CircleAPI;
-import io.alekso56.bukkit.hazeinv.Enums.Flag;
-import io.alekso56.bukkit.hazeinv.Models.Circle;
 
 public class PurgeCommand implements CommandExecutor {
 
