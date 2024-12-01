@@ -56,12 +56,12 @@ public class PlayerEventListener implements Listener {
 	@EventHandler
 	void onPlayerSpawn(PlayerSpawnLocationEvent e) {
 		VanillaPlayer adjuster = Core.instance.players.get(e.getPlayer());
+		if(adjuster == null)return;
         Circle previousCircle = Core.instance.getLastLogoutCircle(e.getPlayer().getUniqueId());
         if(previousCircle != null && !adjuster.getCurrent_circle().getCircleName().equals(previousCircle.getCircleName())) {
         	Core.timeout(e.getPlayer().getUniqueId());
-        	VanillaPlayer player = Core.instance.players.get(e.getPlayer());
         	//maybe save bugged inventory to correct location, but that requires last gamemode before crash.
-        	player.loadData(adjuster.getCurrent_circle().isPerGameMode() ? LabelTag.getOf(e.getPlayer().getGameMode()) : LabelTag.CIRCLE_SURVIVAL);
+        	adjuster.loadData(adjuster.getCurrent_circle().isPerGameMode() ? LabelTag.getOf(e.getPlayer().getGameMode()) : LabelTag.CIRCLE_SURVIVAL);
         }
 	}
 	@EventHandler
