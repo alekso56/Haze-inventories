@@ -140,7 +140,7 @@ public class InventoryStorage {
 		}
 		try {
 			@Nullable
-			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player,LabelTag.CIRCLE).toPath());
+			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player,LabelTag.CIRCLE_SURVIVAL).toPath());
 			if (tag == null || !containsAndExists(tag, "Pos")) {
 				return null;
 			}
@@ -165,7 +165,7 @@ public class InventoryStorage {
 		}
 		try {
 			@Nullable
-			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player,LabelTag.CIRCLE).toPath());
+			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player,LabelTag.CIRCLE_SURVIVAL).toPath());
 			if (tag == null) {
 				return false;
 			}

@@ -4,9 +4,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import org.bukkit.entity.Player;
@@ -15,6 +18,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
@@ -22,16 +27,29 @@ import com.onarandombox.MultiverseCore.MultiverseCore;
 
 import io.alekso56.bukkit.hazeinv.EventListeners.PlayerEventListener;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
+import io.alekso56.bukkit.hazeinv.Models.PlayerMeta;
 import io.alekso56.bukkit.hazeinv.Util.VanillaPlayer;
 import net.milkbowl.vault.economy.Economy;
 
 
 public class Core extends JavaPlugin {
+
+	public static Core instance;
+
+	private static Economy econ = null;
 	
-   public static Core instance;
-   
-   private static Economy econ = null;
+	private static Cache<Object, Object> timeouts = CacheBuilder.newBuilder().maximumSize(1000)
+			.expireAfterWrite(1, TimeUnit.SECONDS).build();
     
+	public static boolean isTimedOut(UUID id) {
+		return timeouts.getIfPresent(id) != null;
+	}
+	
+
+	public static void timeout(UUID uniqueId) {
+		timeouts.put(uniqueId, Instant.now().getEpochSecond());
+	}
+	
     public final List<Circle> circles = new ArrayList<Circle>() {
     	//instead of "i forgor" we do saving here.
     	@Override
@@ -53,6 +71,8 @@ public class Core extends JavaPlugin {
 
 	private File CircleDir;
 
+	private File PlayerMetaDir;
+
 	public static MultiverseCore mwcore;
 	
 	static Gson gson = new Gson();
@@ -64,6 +84,10 @@ public class Core extends JavaPlugin {
         CircleDir = new File(getDataFolder().getPath()+File.separatorChar+"Circles");
 		if(!CircleDir.exists()){
 			CircleDir.mkdirs();
+		}
+		PlayerMetaDir = new File(getDataFolder().getPath()+File.separatorChar+"PlayerMeta");
+		if(!PlayerMetaDir.exists()) {
+			PlayerMetaDir.mkdirs();
 		}
     }
 
@@ -103,6 +127,40 @@ public class Core extends JavaPlugin {
 			}
 		}
 	}
+    
+    public void saveLastLogoutCircle(UUID id,Circle circle) {
+    	PlayerMeta meta = new PlayerMeta(circle.getCircleName());
+    	File file = new File(PlayerMetaDir,id.toString()+".json");
+    	if(!file.exists()) {
+			try {
+				if(!file.createNewFile())return;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+    	}
+    	try (FileWriter metaFile = new FileWriter(file)){
+			gson.toJson(meta, metaFile);
+		} catch (JsonIOException | IOException e) {
+			warning("Failed writing PlayerMeta: "+id.toString());
+		}
+    }
+    
+    public Circle getLastLogoutCircle(UUID id) {
+    	File file = new File(PlayerMetaDir,id.toString()+".json");
+    	if(!file.exists())return null;
+    	try (FileReader playermeta = new FileReader(file)){
+			PlayerMeta metadata = gson.fromJson(playermeta, PlayerMeta.class);
+			if(metadata.lastCircle == null)return null;
+			for(Circle circle : Core.instance.circles) {
+				if(circle.getCircleName().equals(metadata.lastCircle)) {
+					return circle;
+				}
+			}
+		} catch (JsonSyntaxException | JsonIOException | IOException e) {
+			warning("Failed reading "+file.getName());
+		}
+    	return null;
+    }
 
 	private boolean setupEconomy() {
         if (getServer().getPluginManager().getPlugin("Vault") == null) {
@@ -139,6 +197,7 @@ public class Core extends JavaPlugin {
 	public static Economy getEcon() {
 		return econ;
 	}
+
 
 
 }

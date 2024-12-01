@@ -22,13 +22,12 @@ import me.ebonjaeger.perworldinventory.libs.json.parser.JSONParser;
 import me.ebonjaeger.perworldinventory.libs.json.parser.ParseException;
 import me.ebonjaeger.perworldinventory.serialization.InventorySerializer;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 
 public class PerWorldInventory implements ConversionModule {
 
 	@Override
 	public boolean ToExternalSource() {
+		//PWI is a dead plugin.
 		return false;
 	}
 

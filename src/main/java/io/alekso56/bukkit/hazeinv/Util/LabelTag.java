@@ -6,7 +6,6 @@ import org.bukkit.plugin.Plugin;
 import io.alekso56.bukkit.hazeinv.conversion.PerWorldInventory.FileTypes;
 
 public enum LabelTag {
-	CIRCLE, 
 	CIRCLE_CREATIVE, 
 	CIRCLE_ADVENTURE, 
 	CIRCLE_SURVIVAL, 
@@ -28,10 +27,8 @@ public enum LabelTag {
 			return LabelTag.CIRCLE_ADVENTURE;
 		case CREATIVE:
 			return LabelTag.CIRCLE_CREATIVE;
-		case SURVIVAL:
-			return LabelTag.CIRCLE_SURVIVAL;
 		default:
-			return LabelTag.CIRCLE;
+			return LabelTag.CIRCLE_SURVIVAL;
 		}
 	}
 
@@ -41,10 +38,8 @@ public enum LabelTag {
 			return LabelTag.CIRCLE_ADVENTURE;
 		case CREATIVE:
 			return LabelTag.CIRCLE_CREATIVE;
-		case SURVIVAL:
-			return LabelTag.CIRCLE_SURVIVAL;
 		default:
-			return LabelTag.CIRCLE;
+			return LabelTag.CIRCLE_SURVIVAL;
 		}
 	}
 }
