@@ -1,7 +1,19 @@
 name: ${project.name}
 version: ${project.version}
 main: io.alekso56.bukkit.hazeinv.Core
-api-version: 1.17
+api-version: 1.21
 softdepend: [Multiverse-Core,Towny,PlotSquared]
-
+commands:
+     circle:
+	  permission: haze.admin
+      description: edit circles
+	 hazpurge:
+      permission: haze.admin
+	  description: purge by userid or circle by date
+	 hazconvert:
+      permission: haze.admin 
+	  description: convert from other inventory plugins
 permissions:
+	 haze.admin:
+	  description: Operator commands
+	  default: op

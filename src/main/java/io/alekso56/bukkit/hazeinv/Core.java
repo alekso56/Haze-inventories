@@ -25,6 +25,9 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.onarandombox.MultiverseCore.MultiverseCore;
 
+import io.alekso56.bukkit.hazeinv.Commands.CircleCommand;
+import io.alekso56.bukkit.hazeinv.Commands.ConversionCommand;
+import io.alekso56.bukkit.hazeinv.Commands.PurgeCommand;
 import io.alekso56.bukkit.hazeinv.EventListeners.PlayerEventListener;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
 import io.alekso56.bukkit.hazeinv.Models.PlayerMeta;
@@ -96,6 +99,11 @@ public class Core extends JavaPlugin {
         setupEconomy();
         loadCircleData();
         getServer().getPluginManager().registerEvents(new PlayerEventListener(), this);
+        CircleCommand circlecommand = new CircleCommand();
+        getCommand("circle").setExecutor(circlecommand);
+        getCommand("circle").setTabCompleter(circlecommand);
+        getCommand("hazconvert").setExecutor(new ConversionCommand());
+        getCommand("hazpurge").setExecutor(new PurgeCommand());
         mwcore = (MultiverseCore) getServer().getPluginManager().getPlugin("Multiverse-Core");
     }
 
