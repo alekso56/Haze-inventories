@@ -1,5 +1,6 @@
 package io.alekso56.bukkit.hazeinv.EventListeners;
 
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -62,6 +63,7 @@ public class PlayerEventListener implements Listener {
         	Core.timeout(e.getPlayer().getUniqueId());
         	//maybe save bugged inventory to correct location, but that requires last gamemode before crash.
         	adjuster.loadData(adjuster.getCurrent_circle().isPerGameMode() ? LabelTag.getOf(e.getPlayer().getGameMode()) : LabelTag.CIRCLE_SURVIVAL);
+        	e.getPlayer().sendMessage("PlayerSpawnCalled");
         }
 	}
 	@EventHandler
@@ -78,16 +80,12 @@ public class PlayerEventListener implements Listener {
 	
 	@EventHandler
 	public void onPlayerTeleportEvent(PlayerTeleportEvent e) {
-	    if(!e.getFrom().getWorld().getName().equals(e.getTo().getWorld().getName())){
+	    if(e.getTo() != null && !e.getFrom().getWorld().getName().equals(e.getTo().getWorld().getName())){
 	        VanillaPlayer adjuster = Core.instance.players.get(e.getPlayer());
 	        Core.timeout(e.getPlayer().getUniqueId());
 	        e.getPlayer().getOpenInventory().close();
 	        GameMode targetGameMode = Core.mwcore.getMVWorldManager().getMVWorld(e.getTo().getWorld()).getGameMode();
 	        adjuster.saveData(adjuster.getPrevious_circle().isPerGameMode()? LabelTag.getOf(targetGameMode): LabelTag.CIRCLE_SURVIVAL);
-	        e.getPlayer().getInventory().clear();
-	        e.getPlayer().getEnderChest().clear();
-	        e.getPlayer().getActivePotionEffects().clear();
-	        e.getPlayer().setLevel(0);
 	    }
 	}
 	
@@ -99,11 +97,6 @@ public class PlayerEventListener implements Listener {
 			Core.timeout(e.getPlayer().getUniqueId());
             e.getPlayer().getOpenInventory().close();
 			adjuster.saveData(LabelTag.getOf(e.getPlayer().getGameMode()));
-			e.getPlayer().getInventory().clear();
-			e.getPlayer().getEnderChest().clear();
-			e.getPlayer().getActivePotionEffects().clear();
-			e.getPlayer().setLevel(0);
-			
 			adjuster.loadData(LabelTag.getOf(e.getNewGameMode()));
 			Core.instance.saveLastLogoutCircle(e.getPlayer().getUniqueId(), adjuster.getCurrent_circle());
 		}

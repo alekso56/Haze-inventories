@@ -19,10 +19,11 @@ import io.alekso56.bukkit.hazeinv.Core;
 import io.alekso56.bukkit.hazeinv.API.CircleAPI;
 import io.alekso56.bukkit.hazeinv.Enums.Flag;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
+import net.md_5.bungee.api.ChatColor;
 
 public class CircleCommand implements CommandExecutor, TabCompleter {
 
-    private final List<String> subCommands = Arrays.asList("view", "create", "delete", "addworld", "removeworld", "addflag", "removeflag", "setoption");
+    private final List<String> subCommands = Arrays.asList("list", "create", "delete", "addworld", "removeworld", "addflag", "removeflag", "setoption");
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -34,13 +35,13 @@ public class CircleCommand implements CommandExecutor, TabCompleter {
         Player player = (Player) sender;
 
         if (args.length == 0) {
-            player.sendMessage("Usage: /circle <view|create|delete|addworld|removeworld|addflag|removeflag|setoption> <worldName|circleName> [worldName|flag|option]");
+            player.sendMessage("Usage: /circle <list|create|delete|addworld|removeworld|addflag|removeflag|setoption> <worldName|circleName> [worldName|flag|option]");
             return false;
         }
 
         String subCommand = args[0].toLowerCase();
         switch (subCommand) {
-            case "view":
+            case "list":
                 handleViewCircles(player);
                 break;
             case "create":
@@ -140,8 +141,9 @@ public class CircleCommand implements CommandExecutor, TabCompleter {
 			return;
 		}
 		for(Circle circle : Core.instance.circles) {
-			circle.getWorlds().remove(world.getUID());
+			circle.getWorlds().remove(world.getName());
 		}
+		player.sendMessage("World " + worldname + " has been removed from all circles");
 	}
 
 	private void handleAddWorld(Player player, String circleName, String worldname) {
@@ -156,17 +158,30 @@ public class CircleCommand implements CommandExecutor, TabCompleter {
 			return;
 		}
 		for(Circle circle : Core.instance.circles) {
-			circle.getWorlds().remove(world.getUID());
+			circle.getWorlds().remove(world.getName());
 		}
-		circlename.getWorlds().add(world.getUID());
+		circlename.getWorlds().add(world.getName());
+		player.sendMessage("World " + worldname + " has been added to "+circlename.getCircleName());
 	}
 
 	private void handleViewCircles(Player player) {
         player.sendMessage("Available circles with worlds, flags, and options:");
         for(Circle circle : Core.instance.circles) {
-            List<String> worlds = circle.getWorlds().stream().map(t -> t.toString()).collect(Collectors.toList());
+            List<String> worlds = circle.getWorlds().stream().map(t -> {
+            	try {
+            	World hasWorld = Bukkit.getWorld(t.toString());
+            	if(hasWorld != null) {
+            		return hasWorld.getName();
+            	}
+            	}catch(Exception e) {
+            		player.sendMessage("getting world of "+t.toString());
+            	}
+            	return t.toString();
+            }).collect(Collectors.toList());
             Set<Flag> flags = circle.listFlags();
-            player.sendMessage("Circle: " + circle + " - Worlds: " + worlds + " - Flags: " + flags + " - Options: PerGamemode:" + circle.isPerGameMode()+" ArmorOnly:"+circle.isSyncArmorOnly()+" EnderChest:"+circle.isSyncEnderChest()+" MainInventory:"+circle.isSyncMainInventory());
+            player.sendMessage(ChatColor.GOLD+"Circle: " +ChatColor.BLUE+ circle.getCircleName() +ChatColor.GOLD+ "\n - Worlds: " + worlds);
+            player.sendMessage(ChatColor.GOLD+"- Flags: " + flags);
+            player.sendMessage(ChatColor.GOLD+"- Options: PerGamemode:" + circle.isPerGameMode()+" ArmorOnly:"+circle.isSyncArmorOnly()+" EnderChest:"+circle.isSyncEnderChest()+" MainInventory:"+circle.isSyncMainInventory());
         }
     }
 
@@ -231,10 +246,10 @@ public class CircleCommand implements CommandExecutor, TabCompleter {
                 }
             }
         } else if (args.length == 2) {
-            if (Arrays.asList("view", "delete", "addworld", "removeworld", "addflag", "removeflag", "setoption").contains(args[0].toLowerCase())) {
+            if (Arrays.asList("list", "delete", "addworld", "removeworld", "addflag", "removeflag", "setoption").contains(args[0].toLowerCase())) {
                 for (Circle circle : Core.instance.circles) {
                     if (circle.getCircleName().toString().startsWith(args[1].toLowerCase())) {
-                        suggestions.add(circle.toString());
+                        suggestions.add(circle.getCircleName().toString());
                     }
                 }
             }

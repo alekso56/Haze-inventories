@@ -15,7 +15,7 @@ import io.alekso56.bukkit.hazeinv.Enums.Flag;
 public class Circle {
 	UUID CircleName;
 	private String friendlyName = "";
-	List<UUID> worlds = new ArrayList<UUID>();
+	List<String> worlds = new ArrayList<String>();
 	@Expose 
 	boolean isPerGameMode = false;
 	boolean syncEnderChest = true;
@@ -25,8 +25,8 @@ public class Circle {
 	int flags = 0;
 
 	public Circle(World name) {
-		if(!worlds.contains(name.getUID())) {
-		   worlds.add(name.getUID());
+		if(!worlds.contains(name.getName())) {
+		   worlds.add(name.getName());
 		}
 		CircleName = UUID.randomUUID();
 		resetFlags();
@@ -62,7 +62,7 @@ public class Circle {
 		return CircleName;
 	}
 
-	public List<UUID> getWorlds() {
+	public List<String> getWorlds() {
 		return worlds;
 	}
 

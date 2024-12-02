@@ -97,7 +97,7 @@ public class PerWorldInventory implements ConversionModule {
 			for (String world : group.getWorlds()) {
 				World hasWorld = Bukkit.getWorld(world);
 				if (hasWorld != null)
-					circle.getWorlds().add(hasWorld.getUID());
+					circle.getWorlds().add(hasWorld.getName());
 			}
 			File ConversionDirectory = new File(pwi.getDataFolder().getAbsolutePath() + File.separatorChar + "data");
 			for (File uuid : ConversionDirectory.listFiles()) {

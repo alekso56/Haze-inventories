@@ -119,7 +119,7 @@ public class InventoryStorage {
 		if (!PlayerFolder.exists())
 			PlayerFolder.mkdirs();
 
-		return new File(PlayerFolder, circle.getCircleName().toString() + type.name()+".dat");
+		return new File(PlayerFolder, circle.getCircleName().toString() +"_"+ type.name()+".dat");
 	}
 
 	static File getGlobalForPlayer(UUID player,LabelTag type) {
@@ -127,7 +127,7 @@ public class InventoryStorage {
 		if (!GlobalFolder.exists())
 			GlobalFolder.mkdirs();
 
-		return new File(GlobalFolder, player.toString()  +"-"+type.name()+".dat");
+		return new File(GlobalFolder, player.toString()  +"_"+type.name()+".dat");
 	}
 
 	public static Location loadPosition(Circle current_circle, UUID player) {

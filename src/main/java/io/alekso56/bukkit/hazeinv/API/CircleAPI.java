@@ -1,6 +1,7 @@
 package io.alekso56.bukkit.hazeinv.API;
 
 import java.util.UUID;
+import java.util.logging.Level;
 
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -12,10 +13,10 @@ public class CircleAPI {
 	static UUID global_circle = UUID.fromString("49414d47-4c4f-4241-4c53-5741524d5748");
 	
 	public static Circle getFromWorld(World world) {
-		UUID target = world.getUID();
+		String target = world.getName();
 		Circle global_circle_target = null;
 		for(Circle circle : Core.instance.circles) {
-			for(UUID worlds : circle.getWorlds()) {
+			for(String worlds : circle.getWorlds()) {
 				if(worlds.equals(target)) {
 					return circle;
 				}
@@ -26,6 +27,7 @@ public class CircleAPI {
 		}
 		Circle circle = global_circle_target != null?global_circle_target:new Circle(world);
 		Core.instance.circles.add(circle);
+		Core.instance.log(Level.INFO, "Adding new circle for: "+target);
 		return circle;
     }
 	public static Circle getFromUser(Player user) {
