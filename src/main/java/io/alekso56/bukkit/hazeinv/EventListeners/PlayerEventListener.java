@@ -1,14 +1,18 @@
 package io.alekso56.bukkit.hazeinv.EventListeners;
 
 import org.bukkit.GameMode;
+import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.advancement.Advancement;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
+import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -38,6 +42,22 @@ public class PlayerEventListener implements Listener {
 	@EventHandler
 	void onPickupWhileTimedOut(EntityPickupItemEvent e) {
 		if(Core.isTimedOut(e.getEntity().getUniqueId())) e.setCancelled(true);
+	}
+	
+	@EventHandler
+	void onAdvancement(PlayerAdvancementDoneEvent e) {
+		Player player = e.getPlayer();
+		World world = player.getWorld();
+		Circle from_circle = CircleAPI.getFromWorld(world);
+		if(!from_circle.isAdvancementsPossible()) {
+			Advancement advancement = e.getAdvancement();
+	        for(String c: advancement.getCriteria()) {
+	            player.getAdvancementProgress(advancement).revokeCriteria(c);
+	        }
+	        if(world.getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS)) {
+	        	world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+	        }
+		}
 	}
 	
 	@EventHandler

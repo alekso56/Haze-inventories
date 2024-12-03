@@ -22,6 +22,7 @@ public class Circle {
 	boolean syncMainInventory = true;
 	boolean syncArmorOnly = false;
 	boolean advancementsPossible = true;
+
 	int flags = 0;
 
 	public Circle(World name) {
@@ -57,7 +58,15 @@ public class Circle {
 		this.syncArmorOnly = syncArmorOnly;
 	}
 
+	public boolean isAdvancementsPossible() {
+		return advancementsPossible;
+	}
 
+
+	public void setAdvancementsPossible(boolean advancementsPossible) {
+		this.advancementsPossible = advancementsPossible;
+	}
+	
 	public UUID getCircleName() {
 		return CircleName;
 	}
@@ -81,6 +90,7 @@ public class Circle {
 	public boolean isSyncArmorOnly() {
 		return syncArmorOnly;
 	}
+	
 
 	//false if syncArmorOnly
 	public boolean canLoadMainInventory() {
