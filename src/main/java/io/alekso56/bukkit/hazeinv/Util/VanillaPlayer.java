@@ -1,5 +1,6 @@
 package io.alekso56.bukkit.hazeinv.Util;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 
@@ -14,8 +15,10 @@ import io.alekso56.bukkit.hazeinv.Events.PostInventoryChangeEvent;
 import io.alekso56.bukkit.hazeinv.Events.PreInventoryChangeEvent;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.storage.PlayerDataStorage;
 
 public class VanillaPlayer {
@@ -46,28 +49,39 @@ public class VanillaPlayer {
 	public void setPrevious_circle(Circle previous_circle) {
 		this.previous_circle = previous_circle;
 	}
-
-    public void loadData(LabelTag type) {
+	public void loadData(LabelTag type) {
+		loadData(false,type);
+	}
+    public void loadData(boolean inventoryOnly, LabelTag type) {
         @Nullable PlayerDataStorage storage = server.getHandle().playerIo;
         if(storage == null) {
         	Core.instance.log(Level.WARNING, "Failed to load player data, playerIo is not enabled.");
         	return;
         }
         try {
+        	File file = InventoryStorage.getFileForPlayer(current_circle, player.getUniqueId(),type);
 			@Nullable
-			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player.getUniqueId(),type).toPath());
+			CompoundTag tag = NbtIo.read(file.toPath());
 			if(tag == null) {
 				tag = InventoryStorage.CreateDefaultSave();
 			}
 			tag = InventoryStorage.FilterInventoryLoad(tag,current_circle,player.getUniqueId(),type);
-			player.getHandle().load(tag);	
+			if (inventoryOnly && tag.contains(InventoryStorage.inventory_tag)) {
+				ListTag invsize = tag.getList(InventoryStorage.inventory_tag, CompoundTag.TAG_COMPOUND);
+				player.getHandle().getInventory().clearContent();
+				Inventory Replacement_Inventory = new Inventory(player.getHandle());
+				Replacement_Inventory.load(invsize);
+				player.getHandle().getInventory().replaceWith(Replacement_Inventory);
+			} else {
+				player.getHandle().load(tag);
+			}
+           
 			PostInventoryChangeEvent PostEvent = new PostInventoryChangeEvent(player, previous_circle, current_circle);
             Bukkit.getPluginManager().callEvent(PostEvent);
 		} catch (IOException e) {
 			Core.instance.log(Level.WARNING, "Failed to load player data for "+player.getUniqueId().toString());
 		}
     }
-	
     public void saveData(LabelTag type) {
         ServerPlayer player_s = player.getHandle();
         
@@ -77,7 +91,7 @@ public class VanillaPlayer {
             Bukkit.getPluginManager().callEvent(PreEvent);
             player_s.saveWithoutId(playerData);
             player.setExtraData(playerData); //writes bukkit related data to tags
-            
+            playerData = InventoryStorage.FilterInventorySave(playerData, current_circle, previous_circle, player.getUniqueId(), type);
             InventoryStorage.writeData(current_circle, player.getUniqueId(), type, playerData);
 
         } catch (Exception e) {

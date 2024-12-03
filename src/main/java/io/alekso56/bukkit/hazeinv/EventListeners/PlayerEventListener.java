@@ -1,6 +1,5 @@
 package io.alekso56.bukkit.hazeinv.EventListeners;
 
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -97,7 +96,7 @@ public class PlayerEventListener implements Listener {
 			Core.timeout(e.getPlayer().getUniqueId());
             e.getPlayer().getOpenInventory().close();
 			adjuster.saveData(LabelTag.getOf(e.getPlayer().getGameMode()));
-			adjuster.loadData(LabelTag.getOf(e.getNewGameMode()));
+			adjuster.loadData(true,LabelTag.getOf(e.getNewGameMode()));
 			Core.instance.saveLastLogoutCircle(e.getPlayer().getUniqueId(), adjuster.getCurrent_circle());
 		}
 	}

@@ -130,7 +130,7 @@ public class InventoryStorage {
 		return new File(GlobalFolder, player.toString()  +"_"+type.name()+".dat");
 	}
 
-	public static Location loadPosition(Circle current_circle, UUID player) {
+	public static Location loadPosition(Circle current_circle, UUID player,LabelTag type) {
 		CraftServer server = (CraftServer) Bukkit.getServer();
 		@Nullable
 		PlayerDataStorage storage = server.getHandle().playerIo;
@@ -140,7 +140,7 @@ public class InventoryStorage {
 		}
 		try {
 			@Nullable
-			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player,LabelTag.CIRCLE_SURVIVAL).toPath());
+			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player,type).toPath());
 			if (tag == null || !containsAndExists(tag, "Pos")) {
 				return null;
 			}
@@ -155,7 +155,7 @@ public class InventoryStorage {
 		}
 		return null;
 	}
-	public static boolean savePosition(Circle current_circle, UUID player,Location loc) {
+	public static boolean savePosition(Circle current_circle, UUID player,Location loc,LabelTag type) {
 		CraftServer server = (CraftServer) Bukkit.getServer();
 		@Nullable
 		PlayerDataStorage storage = server.getHandle().playerIo;
@@ -165,7 +165,7 @@ public class InventoryStorage {
 		}
 		try {
 			@Nullable
-			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player,LabelTag.CIRCLE_SURVIVAL).toPath());
+			CompoundTag tag = NbtIo.read(InventoryStorage.getFileForPlayer(current_circle, player,type).toPath());
 			if (tag == null) {
 				return false;
 			}
@@ -279,6 +279,8 @@ public class InventoryStorage {
 
 			if (file1.exists() && !file1.delete() || !file.renameTo(file1)) {
 				Core.instance.log(Level.WARNING, "Failed to save player data for " + player);
+			}else {
+				Core.instance.log(Level.WARNING, "Saved " + file1.getName());
 			}
 
 		} catch (Exception e) {
@@ -370,7 +372,7 @@ public class InventoryStorage {
 		}
 		// synced to circle, not global, meaning inventory is global.
 		if (circle.isSyncArmorOnly() && tag.contains(inventory_tag)) {
-
+			Core.instance.getLogger().log(Level.WARNING, "ArmorOnly");
 			ListTag list = tag.getList(inventory_tag, CompoundTag.TAG_COMPOUND);
 			ListTag replacements = data.contains(inventory_tag) ? data.getList(inventory_tag, CompoundTag.TAG_COMPOUND)
 					: null;
@@ -427,6 +429,7 @@ public class InventoryStorage {
 			tag.remove(inventory_tag);
 			tag.put(inventory_tag, list);
 		} else if (!circle.canLoadMainInventory() && tag.contains(inventory_tag)) {
+			Core.instance.getLogger().log(Level.WARNING, "Filter: CantLoadMAin");
 			// can't sync inventory with circle or armor items, therefore get all from
 			// global.
 			tag.remove(inventory_tag);
@@ -434,6 +437,7 @@ public class InventoryStorage {
 			tag.put(inventory_tag, containsAndExists(data, inventory_tag) ? data.get(inventory_tag) : new ListTag());
 		}
 		if (!circle.isSyncEnderChest() && tag.contains(ender_inventory_tag)) {
+			Core.instance.getLogger().log(Level.WARNING, "Filter: CantLoadEchest");
 			// can't sync inventory with circle or armor items, therefore get all from
 			// global.
 			tag.remove(ender_inventory_tag);
@@ -671,6 +675,11 @@ public class InventoryStorage {
 					break;
 				}
 			}
+		}
+		try {
+			NbtIo.write(data, GlobalFile.toPath());
+		} catch (IOException e) {
+			Core.instance.getLogger().log(Level.WARNING, e.getMessage());
 		}
 		return tag;
 	}

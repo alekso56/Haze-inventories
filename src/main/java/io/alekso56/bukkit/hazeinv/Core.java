@@ -42,7 +42,7 @@ public class Core extends JavaPlugin {
 	private static Economy econ = null;
 	
 	private static Cache<Object, Object> timeouts = CacheBuilder.newBuilder().maximumSize(1000)
-			.expireAfterWrite(1, TimeUnit.SECONDS).build();
+			.expireAfterWrite(2, TimeUnit.SECONDS).build();
     
 	public static boolean isTimedOut(UUID id) {
 		return timeouts.getIfPresent(id) != null;
