@@ -12,9 +12,9 @@ import org.bukkit.World;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import io.alekso56.bukkit.hazeinv.Enums.LabelTag;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
 import io.alekso56.bukkit.hazeinv.Util.InventoryStorage;
-import io.alekso56.bukkit.hazeinv.Util.LabelTag;
 import me.ebonjaeger.perworldinventory.Group;
 import me.ebonjaeger.perworldinventory.libs.json.JSONArray;
 import me.ebonjaeger.perworldinventory.libs.json.JSONObject;

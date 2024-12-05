@@ -1,4 +1,4 @@
-package io.alekso56.bukkit.hazeinv.Util;
+package io.alekso56.bukkit.hazeinv.Enums;
 
 import org.bukkit.GameMode;
 import org.bukkit.plugin.Plugin;

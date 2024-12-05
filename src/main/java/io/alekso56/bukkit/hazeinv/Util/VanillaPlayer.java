@@ -9,8 +9,10 @@ import javax.annotation.Nullable;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_21_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_21_R1.entity.CraftPlayer;
+import org.bukkit.plugin.Plugin;
 
 import io.alekso56.bukkit.hazeinv.Core;
+import io.alekso56.bukkit.hazeinv.Enums.LabelTag;
 import io.alekso56.bukkit.hazeinv.Events.PostInventoryChangeEvent;
 import io.alekso56.bukkit.hazeinv.Events.PreInventoryChangeEvent;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
@@ -27,6 +29,8 @@ public class VanillaPlayer {
 	Circle previous_circle;
     CraftPlayer player;
     CraftServer server;
+    boolean canSave = true;
+	private org.bukkit.inventory.Inventory loadQueue;
 	
 
 	public VanillaPlayer(CraftServer server, CraftPlayer plo) {
@@ -83,6 +87,7 @@ public class VanillaPlayer {
 		}
     }
     public void saveData(LabelTag type) {
+    	if(!this.canSave)return;
         ServerPlayer player_s = player.getHandle();
         
         try {
@@ -99,5 +104,22 @@ public class VanillaPlayer {
         	Core.instance.log(Level.WARNING, "Failed to save player data for "+player.getDisplayName());
         }
     }
+
+	public void enableSaving() {
+		this.canSave = true;
+	}
+	
+	public void disableSaving() {
+		this.canSave = false;
+	}
+
+	public void loadNextWorldChange(org.bukkit.inventory.Inventory inv) {
+		this.loadQueue = inv;
+	}
+
+	public void loadNextWorldChange(Plugin plugin, String inventoryName) {
+		// TODO Auto-generated method stub
+		
+	}
         
 }

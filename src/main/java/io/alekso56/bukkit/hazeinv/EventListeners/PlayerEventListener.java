@@ -22,9 +22,9 @@ import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 import io.alekso56.bukkit.hazeinv.Core;
 import io.alekso56.bukkit.hazeinv.API.CircleAPI;
+import io.alekso56.bukkit.hazeinv.Enums.LabelTag;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
 import io.alekso56.bukkit.hazeinv.Util.InventoryConversion;
-import io.alekso56.bukkit.hazeinv.Util.LabelTag;
 import io.alekso56.bukkit.hazeinv.Util.VanillaPlayer;
 
 public class PlayerEventListener implements Listener {
@@ -93,6 +93,7 @@ public class PlayerEventListener implements Listener {
 		adjuster.setPrevious_circle(adjuster.getCurrent_circle());
 		adjuster.setCurrent_circle(to_circle);
 		GameMode targetGameMode = Core.mwcore.getMVWorldManager().getMVWorld(world).getGameMode();
+		adjuster.enableSaving();
 		adjuster.loadData(to_circle.isPerGameMode() ?LabelTag.getOf(targetGameMode) : LabelTag.CIRCLE_SURVIVAL);
 		Core.instance.saveLastLogoutCircle(e.getPlayer().getUniqueId(), to_circle);
 	}

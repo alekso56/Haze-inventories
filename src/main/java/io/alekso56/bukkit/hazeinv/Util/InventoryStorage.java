@@ -22,7 +22,9 @@ import org.bukkit.inventory.Inventory;
 
 import io.alekso56.bukkit.hazeinv.Core;
 import io.alekso56.bukkit.hazeinv.Enums.Flag;
+import io.alekso56.bukkit.hazeinv.Enums.LabelTag;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
+import io.alekso56.bukkit.hazeinv.Models.Settings;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
@@ -113,13 +115,16 @@ public class InventoryStorage {
 	static final String effecttag = "ActiveEffects";
 	static final String foodSaturationLevelTag = "foodSaturationLevel";
 
+	private static String attributesTag = "Attributes";
+
 	static File getFileForPlayer(Circle circle, UUID player,LabelTag type) {
 		File PlayerFolder = new File(Core.instance.getDataFolder(),
 				"saveData" + File.separatorChar + player);
 		if (!PlayerFolder.exists())
 			PlayerFolder.mkdirs();
 
-		return new File(PlayerFolder, circle.getCircleName().toString() +"_"+ type.name()+".dat");
+		
+		return new File(PlayerFolder, circle.getCircleName().toString() +"_"+ type.name() + (type.equals(LabelTag.PLUGIN)?type.getName():"") + ".dat");
 	}
 
 	static File getGlobalForPlayer(UUID player,LabelTag type) {
@@ -238,7 +243,7 @@ public class InventoryStorage {
 		return null;
 	}
 
-	public static void saveData(Circle current_circle, UUID player, Inventory inv, boolean isEnderChest,LabelTag type) {
+	public static boolean saveData(Circle current_circle, UUID player, Inventory inv, boolean isEnderChest,LabelTag type) {
 		CraftInventory inventory = (CraftInventory) inv;
 		try {
 			File playerFile = InventoryStorage.getFileForPlayer(current_circle, player,type);
@@ -252,10 +257,11 @@ public class InventoryStorage {
 			tag = InventoryStorage.FilterInventorySave(tag, current_circle, current_circle, player,type);
 
 			writeData(current_circle,player,type,tag);
-
+            return true;
 		} catch (Exception e) {
 			e.printStackTrace();
 			Core.instance.log(Level.WARNING, "Failed to save player data for " + player);
+			return false;
 		}
 	}
 	
@@ -265,7 +271,7 @@ public class InventoryStorage {
 
 			PlayerDataStorage worldNBTStorage = server.getHandle().playerIo;
 
-			File file = new File(worldNBTStorage.getPlayerDir(), player + ".dat."+type.name()+".tmp");
+			File file = new File(worldNBTStorage.getPlayerDir(), player +"_"+type.name()+".dat.tmp");
 			if (file.exists()) {
 				file.delete();
 			}
@@ -356,7 +362,7 @@ public class InventoryStorage {
 		File GlobalFile = getGlobalForPlayer(player,type);
 		@Nullable
 		CompoundTag data = null;
-		if (GlobalFile.exists()) {
+		if (GlobalFile.exists() && !Settings.eraseInsteadOfGlobal) {
 			try {
 				data = NbtIo.read(GlobalFile.toPath());
 			} catch (IOException e) {
@@ -449,6 +455,13 @@ public class InventoryStorage {
 			// the flag is not allowed, get from global instead!
 			if (!circle.checkFlag(flag)) {
 				switch (flag) {
+				case ATTRIBUTES:
+					tag.remove(attributesTag);
+					
+					tag.put(attributesTag,
+							containsAndExists(data, attributesTag) ? data.getList(attributesTag, CompoundTag.TAG_COMPOUND)
+									: new ListTag());
+					break;
 				case AIR:
 					tag.remove(airTag);
 
@@ -625,6 +638,11 @@ public class InventoryStorage {
 			// the flag is not allowed, save to global instead!
 			if (!previous_circle.checkFlag(flag)) {
 				switch (flag) {
+				case ATTRIBUTES:
+					data.put(attributesTag,
+							containsAndExists(tag, attributesTag) ? tag.getList(attributesTag, CompoundTag.TAG_COMPOUND)
+									: new ListTag());
+					break;
 				case AIR:
 					data.putInt(airTag, containsAndExists(tag, airTag) ? tag.getInt(airTag) : 300);
 					break;
@@ -676,11 +694,12 @@ public class InventoryStorage {
 				}
 			}
 		}
+		if(!Settings.eraseInsteadOfGlobal) {
 		try {
 			NbtIo.write(data, GlobalFile.toPath());
 		} catch (IOException e) {
 			Core.instance.getLogger().log(Level.WARNING, e.getMessage());
-		}
+		}}
 		return tag;
 	}
 

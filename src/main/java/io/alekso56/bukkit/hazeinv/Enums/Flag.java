@@ -1,6 +1,7 @@
 package io.alekso56.bukkit.hazeinv.Enums;
 
 public enum Flag {
+	ATTRIBUTES,
 	AIR,
 	ECONOMY,
 	EXHAUSTION,
