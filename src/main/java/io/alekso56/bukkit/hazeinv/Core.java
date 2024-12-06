@@ -28,6 +28,7 @@ import com.onarandombox.MultiverseCore.MultiverseCore;
 import io.alekso56.bukkit.hazeinv.Commands.CircleCommand;
 import io.alekso56.bukkit.hazeinv.Commands.ConversionCommand;
 import io.alekso56.bukkit.hazeinv.Commands.PurgeCommand;
+import io.alekso56.bukkit.hazeinv.Commands.TestCommand;
 import io.alekso56.bukkit.hazeinv.EventListeners.PlayerEventListener;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
 import io.alekso56.bukkit.hazeinv.Models.PlayerMeta;
@@ -104,6 +105,7 @@ public class Core extends JavaPlugin {
         getCommand("circle").setTabCompleter(circlecommand);
         getCommand("hazconvert").setExecutor(new ConversionCommand());
         getCommand("hazpurge").setExecutor(new PurgeCommand());
+        getCommand("haztest").setExecutor(new TestCommand());
         mwcore = (MultiverseCore) getServer().getPluginManager().getPlugin("Multiverse-Core");
     }
 

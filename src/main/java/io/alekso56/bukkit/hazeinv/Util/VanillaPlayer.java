@@ -30,7 +30,8 @@ public class VanillaPlayer {
     CraftPlayer player;
     CraftServer server;
     boolean canSave = true;
-	private org.bukkit.inventory.Inventory loadQueue;
+    public org.bukkit.inventory.Inventory loadQueue;
+    public String loadTargetName;
 	
 
 	public VanillaPlayer(CraftServer server, CraftPlayer plo) {
@@ -113,13 +114,16 @@ public class VanillaPlayer {
 		this.canSave = false;
 	}
 
-	public void loadNextWorldChange(org.bukkit.inventory.Inventory inv) {
+	public boolean loadNextWorldChange(org.bukkit.inventory.Inventory inv) {
+		if(this.loadQueue != null || inv == null)return false;
 		this.loadQueue = inv;
+		return true;
 	}
 
-	public void loadNextWorldChange(Plugin plugin, String inventoryName) {
-		// TODO Auto-generated method stub
-		
+	public boolean loadNextWorldChange(Plugin plugin, String inventoryName) {
+		if(this.loadTargetName != null)return false;
+		this.loadTargetName = plugin.getName()+"_"+inventoryName;
+		return true;
 	}
         
 }

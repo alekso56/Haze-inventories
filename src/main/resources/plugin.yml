@@ -13,6 +13,9 @@ commands:
   hazconvert:
     permission: haze.admin
     description: convert from other inventory plugins
+  haztest:
+    permission: haze.admin
+    description: schedule world empty inv test
 permissions:
   haze.admin:
     description: Operator commands

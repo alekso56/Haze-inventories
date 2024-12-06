@@ -1,7 +1,6 @@
 package io.alekso56.bukkit.hazeinv.Enums;
 
 import org.bukkit.GameMode;
-import org.bukkit.plugin.Plugin;
 
 import io.alekso56.bukkit.hazeinv.conversion.PerWorldInventory.FileTypes;
 
@@ -17,8 +16,9 @@ public enum LabelTag {
 		return Name;
 	}
 
-	public void setName(Plugin plugin) {
-		Name = plugin.getName();
+	public LabelTag setName(String loadTargetName) {
+		Name = loadTargetName;
+		return this;
 	}
 
 	public static LabelTag getOf(GameMode targetGameMode) {

@@ -14,6 +14,7 @@ import javax.annotation.Nullable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.craftbukkit.v1_21_R1.CraftRegistry;
 import org.bukkit.craftbukkit.v1_21_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_21_R1.inventory.CraftInventory;
 import org.bukkit.craftbukkit.v1_21_R1.inventory.CraftItemStack;
@@ -92,7 +93,7 @@ public class InventoryStorage {
 				return slotmapping.INVENTORY_START;
 			if (isInHotbar(slot, useNbt))
 				return slotmapping.HOTBAR_START;
-			return null;
+			return slotmapping.INVENTORY_START;
 		}
 	}
 
@@ -298,7 +299,6 @@ public class InventoryStorage {
 	//Make sure inventory is offset by 5
 	public static ListTag inventoryToNBTOffsetStartBy5(Inventory inventory, boolean enderchest) {
 		ListTag itemsList = new ListTag();
-
 		for (int i = 0; i < inventory.getSize(); i++) {
 			org.bukkit.inventory.ItemStack item = inventory.getItem(i);
 
@@ -306,26 +306,30 @@ public class InventoryStorage {
 				net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
 
 				CompoundTag itemTag = new CompoundTag();
-				nmsItem.save(null, itemTag);
-				if (enderchest) {
-					itemTag.putInt("Slot", i);
-				} else {
-					slotmapping mapping = slotmapping.getMapping(i, false);
-					switch (mapping) {
-					case LEG:
-					case SHIELD:
-					case CHEST:
-					case FEET:
-					case HEAD:
-						itemTag.putInt("Slot", mapping.getNbtSlot());
-						break;
-					case HOTBAR_START:
-					case INVENTORY_START:
+				try {
+					itemTag = (CompoundTag) nmsItem.save(CraftRegistry.getMinecraftRegistry());
+					if (enderchest) {
 						itemTag.putInt("Slot", i);
-						break;
-					default:
-						break;
+					} else {
+						slotmapping mapping = slotmapping.getMapping(i, false);
+						switch (mapping) {
+						case LEG:
+						case SHIELD:
+						case CHEST:
+						case FEET:
+						case HEAD:
+							itemTag.putInt("Slot", mapping.getNbtSlot());
+							break;
+						case HOTBAR_START:
+						case INVENTORY_START:
+							itemTag.putInt("Slot", i);
+							break;
+						default:
+							break;
+						}
 					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 				itemsList.add(itemTag);
 			}

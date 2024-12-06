@@ -16,6 +16,7 @@ import io.alekso56.bukkit.hazeinv.Enums.LabelTag;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
 import io.alekso56.bukkit.hazeinv.Util.InventoryStorage;
 import me.ebonjaeger.perworldinventory.Group;
+import me.ebonjaeger.perworldinventory.api.PerWorldInventoryAPI;
 import me.ebonjaeger.perworldinventory.libs.json.JSONArray;
 import me.ebonjaeger.perworldinventory.libs.json.JSONObject;
 import me.ebonjaeger.perworldinventory.libs.json.parser.JSONParser;
@@ -49,8 +50,8 @@ public class PerWorldInventory implements ConversionModule {
 	}
 
 	static enum InventoryType {
-		ENDER_CHEST(27, "ender-chest"), MAIN_INVENTORY(41, "inventory.inventory"),
-		ARMOR_INVENTORY(4, "inventory.armor");
+		ENDER_CHEST(27, "ender-chest"), MAIN_INVENTORY(41, "inventory"),
+		ARMOR_INVENTORY(4, "inventory");
 
 		private int slots;
 		private String jsonTag;
@@ -70,7 +71,7 @@ public class PerWorldInventory implements ConversionModule {
 	}
 
 	private static final JSONParser PARSER = new JSONParser(JSONParser.USE_INTEGER_STORAGE);
-
+    
 	public static enum FileTypes {
 		ADVENTURE("_adventure.json"), CREATIVE("_creative.json"), SPECTATOR("_spectator.json"), SURVIVAL(".json");
 
@@ -117,47 +118,40 @@ public class PerWorldInventory implements ConversionModule {
 									continue;
 								}
 
-								for (InventoryType value : InventoryType.values()) {
-									if (value.equals(InventoryType.ARMOR_INVENTORY))
-										continue;
-
-									JSONArray json = (JSONArray) out.get(value.jsonTag);
-									if (json != null && !json.isEmpty()) {
-										ItemStack[] inventory = InventorySerializer.INSTANCE.deserialize(json,
-												value.getSlots(), (int) out.get("data-format"));
-										Inventory inventoryTemp = Bukkit.createInventory(null, value.getSlots());
-
-										switch (value) {
-										case ENDER_CHEST:
-											inventoryTemp.addItem(inventory);
-											tag.put(InventoryStorage.ender_inventory_tag,
-													InventoryStorage.inventoryToNBTOffsetStartBy5(inventoryTemp, true));
-											break;
-										case MAIN_INVENTORY:
-											// Load armor inventory in the first slots
-											JSONArray json2 = (JSONArray) out.get(value.jsonTag);
-											if (json2 != null && !json2.isEmpty()) {
-												ItemStack[] inventory2 = InventorySerializer.INSTANCE.deserialize(json2,
-														InventoryType.ARMOR_INVENTORY.slots,
-														(int) out.get("data-format"));
-												inventoryTemp.addItem(inventory2);
-											} else {
-												ItemStack loftyGoals = new ItemStack(Material.AIR);
-												// head to shield 5
-												inventoryTemp.addItem(loftyGoals, loftyGoals, loftyGoals, loftyGoals,
-														loftyGoals);
-											}
-											// load normal inventory
-											inventoryTemp.addItem(inventory);
-											tag.put(InventoryStorage.inventory_tag, InventoryStorage
-													.inventoryToNBTOffsetStartBy5(inventoryTemp, false));
-											break;
-										default:
-											break;
-										}
+								JSONObject json = (JSONObject) out.get("inventory");
+								if (json != null && !json.isEmpty()) {
+									ItemStack[] inventory = InventorySerializer.INSTANCE.deserialize((JSONArray) json.get("inventory"),
+											InventoryType.MAIN_INVENTORY.slots, (int) out.get("data-format"));
+									
+									Inventory inventoryTemp = Bukkit.createInventory(null, InventoryType.MAIN_INVENTORY.slots+4);
+									
+									JSONArray json2 = (JSONArray) json.get("armor");
+									if (json2 != null && !json2.isEmpty()) {
+										ItemStack[] inventory2 = InventorySerializer.INSTANCE.deserialize(json2,
+												InventoryType.ARMOR_INVENTORY.slots,
+												(int) out.get("data-format"));
+										inventoryTemp.addItem(inventory2);
+									} else {
+										ItemStack loftyGoals = new ItemStack(Material.AIR);
+										// head to shield 5
+										inventoryTemp.addItem(loftyGoals, loftyGoals, loftyGoals, loftyGoals,
+												loftyGoals);
 									}
-								}
-
+									// load normal inventory
+									inventoryTemp.addItem(inventory);
+									tag.put(InventoryStorage.inventory_tag, InventoryStorage
+											.inventoryToNBTOffsetStartBy5(inventoryTemp, false));
+									//load ender chest
+									JSONArray echesttag = (JSONArray) out.get(InventoryType.ENDER_CHEST.jsonTag);
+									if(echesttag != null) {
+									ItemStack[] echest = InventorySerializer.INSTANCE.deserialize(echesttag,
+											InventoryType.ENDER_CHEST.slots, (int) out.get("data-format"));
+									inventoryTemp = Bukkit.createInventory(null, InventoryType.ENDER_CHEST.slots);
+									inventoryTemp.addItem(echest);
+									tag.put(InventoryStorage.ender_inventory_tag,
+											InventoryStorage.inventoryToNBTOffsetStartBy5(inventoryTemp, true));
+									}
+									}
 							} catch (Exception e) {
 								e.printStackTrace();
 							}

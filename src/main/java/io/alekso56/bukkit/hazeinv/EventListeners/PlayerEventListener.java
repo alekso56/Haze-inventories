@@ -25,6 +25,7 @@ import io.alekso56.bukkit.hazeinv.API.CircleAPI;
 import io.alekso56.bukkit.hazeinv.Enums.LabelTag;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
 import io.alekso56.bukkit.hazeinv.Util.InventoryConversion;
+import io.alekso56.bukkit.hazeinv.Util.InventoryStorage;
 import io.alekso56.bukkit.hazeinv.Util.VanillaPlayer;
 
 public class PlayerEventListener implements Listener {
@@ -92,9 +93,20 @@ public class PlayerEventListener implements Listener {
 		VanillaPlayer adjuster = Core.instance.players.get(e.getPlayer());
 		adjuster.setPrevious_circle(adjuster.getCurrent_circle());
 		adjuster.setCurrent_circle(to_circle);
-		GameMode targetGameMode = Core.mwcore.getMVWorldManager().getMVWorld(world).getGameMode();
 		adjuster.enableSaving();
-		adjuster.loadData(to_circle.isPerGameMode() ?LabelTag.getOf(targetGameMode) : LabelTag.CIRCLE_SURVIVAL);
+		if(adjuster.loadQueue != null && adjuster.loadTargetName != null) {
+			InventoryStorage.saveData(to_circle, e.getPlayer().getUniqueId(), adjuster.loadQueue, false, LabelTag.PLUGIN.setName(adjuster.loadTargetName));
+		}
+		if(adjuster.loadTargetName != null) {
+			adjuster.loadData(LabelTag.PLUGIN.setName(adjuster.loadTargetName) );
+			adjuster.loadQueue = null;
+			adjuster.loadTargetName = null;
+		}else {
+			GameMode targetGameMode = Core.mwcore.getMVWorldManager().getMVWorld(world).getGameMode();
+			
+			adjuster.loadData(to_circle.isPerGameMode() ?LabelTag.getOf(targetGameMode) : LabelTag.CIRCLE_SURVIVAL);
+		}
+		
 		Core.instance.saveLastLogoutCircle(e.getPlayer().getUniqueId(), to_circle);
 	}
 	
@@ -104,8 +116,7 @@ public class PlayerEventListener implements Listener {
 	        VanillaPlayer adjuster = Core.instance.players.get(e.getPlayer());
 	        Core.timeout(e.getPlayer().getUniqueId());
 	        e.getPlayer().getOpenInventory().close();
-	        GameMode targetGameMode = Core.mwcore.getMVWorldManager().getMVWorld(e.getTo().getWorld()).getGameMode();
-	        adjuster.saveData(adjuster.getPrevious_circle().isPerGameMode()? LabelTag.getOf(targetGameMode): LabelTag.CIRCLE_SURVIVAL);
+	        adjuster.saveData(adjuster.getCurrent_circle().isPerGameMode()? LabelTag.getOf(e.getPlayer().getGameMode()): LabelTag.CIRCLE_SURVIVAL);
 	    }
 	}
 	
