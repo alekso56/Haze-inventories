@@ -3,14 +3,18 @@ package io.alekso56.bukkit.hazeinv.conversion;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.UUID;
+import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import io.alekso56.bukkit.hazeinv.Core;
 import io.alekso56.bukkit.hazeinv.Enums.LabelTag;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
 import io.alekso56.bukkit.hazeinv.Util.InventoryStorage;
@@ -83,10 +87,12 @@ public class PerWorldInventory implements ConversionModule {
 	public static boolean convertPWI() throws FileNotFoundException, ParseException {
 		me.ebonjaeger.perworldinventory.PerWorldInventory pwi = (me.ebonjaeger.perworldinventory.PerWorldInventory) Bukkit
 				.getServer().getPluginManager().getPlugin("PerWorldInventory");
+		Core.instance.circles.clear();
 		HashSet<Group> groups = new HashSet<Group>();
+		Instant start_time = Instant.now();
 		for (World world : Bukkit.getWorlds()) {
 			Group group = pwi.getApi().getGroupFromWorld(world.getName());
-			if (group != null) {
+			if (group.getConfigured()) {
 				groups.add(group);
 			}
 		}
@@ -98,14 +104,16 @@ public class PerWorldInventory implements ConversionModule {
 				if (hasWorld != null)
 					circle.getWorlds().add(hasWorld.getName());
 			}
+			Core.instance.circles.add(circle);
 			File ConversionDirectory = new File(pwi.getDataFolder().getAbsolutePath() + File.separatorChar + "data");
-			for (File uuid : ConversionDirectory.listFiles()) {
+			int i = 0;
+			File[] files = ConversionDirectory.listFiles();
+			for (File uuid : files) {
+				i++;
 				try {
 					if (uuid.isDirectory()) {
 						UUID uuid_converted = UUID.fromString(uuid.getName());
 						for (FileTypes filetype : FileTypes.values()) {
-							CompoundTag tag = InventoryStorage.CreateDefaultSave();
-
 							String inv = uuid.getAbsolutePath() + File.separatorChar + group.getName() + filetype.fileEnding;
 							File file = new File(inv);
 							if(!file.exists())continue;
@@ -114,6 +122,26 @@ public class PerWorldInventory implements ConversionModule {
 
 								if ((!out.containsKey("data-format") || ((int) out.get("data-format")) < 2)) {
 									continue;
+								}
+								CompoundTag tag = null;
+								JSONObject stats = (JSONObject) out.get("stats");
+								if(stats != null && !stats.isEmpty()) {
+									int level = (int) stats.getOrDefault("level",0);
+									double falldistance = (double) stats.getOrDefault("fallDistance",0.0);
+									double exhaustion = (double) stats.getOrDefault("exhaustion",0.0);
+									double maxhealth = (double) stats.getOrDefault("max-health",20.0);
+									int maxair  = (int)  stats.getOrDefault("maxAir",300);
+									double health = (double) stats.getOrDefault("health",20.0);
+									int remainingair = (int) stats.getOrDefault("remainingAir",300);
+									int food = (int) stats.getOrDefault("food",20);
+									double saturation = (double) stats.getOrDefault("saturation",5.0);
+									int fireticks = (int)stats.getOrDefault("fireTicks",-20);
+									double exp = (double) stats.getOrDefault("exp",0.0);
+									String displayname = (String) stats.getOrDefault("display-name","");
+								    
+									tag = InventoryStorage.CreateDefaultSave(level,falldistance,exhaustion,maxhealth,maxair,health,remainingair,food,saturation,fireticks,exp,displayname);
+								}else {
+									tag = InventoryStorage.CreateDefaultSave();
 								}
 
 								JSONObject json = (JSONObject) out.get("inventory");
@@ -137,25 +165,28 @@ public class PerWorldInventory implements ConversionModule {
 									//load ender chest
 									JSONArray echesttag = (JSONArray) out.get(InventoryType.ENDER_CHEST.jsonTag);
 									if(echesttag != null) {
-									ItemStack[] echest = InventorySerializer.INSTANCE.deserialize(echesttag,
-											InventoryType.ENDER_CHEST.slots, (int) out.get("data-format"));
-									inventoryTemp = Bukkit.createInventory(null, InventoryType.ENDER_CHEST.slots);
-									inventoryTemp.addItem(echest);
-									tag.put(InventoryStorage.ender_inventory_tag,
-											InventoryStorage.inventoryToNBTOffsetStartBy5(inventoryTemp, true));
+										ItemStack[] echest = InventorySerializer.INSTANCE.deserialize(echesttag,
+												InventoryType.ENDER_CHEST.slots, (int) out.get("data-format"));
+										inventoryTemp = Bukkit.createInventory(null, InventoryType.ENDER_CHEST.slots);
+										inventoryTemp.addItem(echest);
+										tag.put(InventoryStorage.ender_inventory_tag,
+												InventoryStorage.inventoryToNBTOffsetStartBy5(inventoryTemp, true));
 									}
-									}
+								}
+								Core.instance.log(Level.WARNING, "Saved "+i+":"+files.length+" " + uuid_converted+" @ "+circle.getFriendlyName()+":"+LabelTag.getOf(filetype).name());
+								InventoryStorage.writeData(circle, uuid_converted, LabelTag.getOf(filetype), tag);
 							} catch (Exception e) {
-								e.printStackTrace();
+								Core.instance.log(Level.WARNING, "Failed decoding json "+uuid.getName(),e);
 							}
-							InventoryStorage.writeData(circle, uuid_converted, LabelTag.getOf(filetype), tag);
+
 						}
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					Core.instance.log(Level.WARNING, "Failed outer try fail "+uuid.getName(),e);
 				}
 			}
 		}
+		Core.instance.log(Level.INFO, Duration.between(start_time, Instant.now()).toSeconds()+" seconds elapsed since start.");
 		return true;
 	}
 

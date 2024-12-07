@@ -283,8 +283,6 @@ public class InventoryStorage {
 
 			if (file1.exists() && !file1.delete() || !file.renameTo(file1)) {
 				Core.instance.log(Level.WARNING, "Failed to save player data for " + player);
-			}else {
-				Core.instance.log(Level.WARNING, "Saved " + file1.getName());
 			}
 
 		} catch (Exception e) {
@@ -333,23 +331,38 @@ public class InventoryStorage {
 	static boolean containsAndExists(CompoundTag tag, String input) {
 		return tag != null && tag.contains(input);
 	}
-
+	
 	public static CompoundTag CreateDefaultSave() {
+		return CreateDefaultSave(0, //level
+				0.0, //falldistance
+				0.0, //exhaustion
+				20.0, //maxhealth
+				300, //maxair
+				20.0, //health
+				300, //remainingair
+				20, // food
+				0, // saturation
+				-20, //fireticks
+				0, // exp
+				""); //displayname
+	}
+	
+	public static CompoundTag CreateDefaultSave(int level, double falldistance, double exhaustion, double maxhealth, int maxair, double health, int remainingair, int food, double saturation, int fireticks, double exp, String displayname) {
 		CompoundTag save = new CompoundTag();
 		save.put(inventory_tag, new ListTag());
 		save.put(ender_inventory_tag, new ListTag());
-		save.putInt(airTag, 300);
-		save.putFloat(EXHAUSTIONtag, 0); // max 4
-		save.putInt(xpLeveltag, 0);
-		save.putFloat(xpProgresstag, 0);
+		save.putShort(airTag, (short) remainingair);
+		save.putFloat(EXHAUSTIONtag,(float) exhaustion); // max 4
+		save.putInt(xpLeveltag, level);
+		save.putFloat(xpProgresstag,(float)  exp);
 		save.putInt(xpTotaltag, 0);
 		save.putInt(EnchantmentSeedtag, 0);
-		save.putFloat(distancetag, 0);
-		save.putShort(firetag, (short) -20);
-		save.putInt(foodtag, 20);
+		save.putFloat(distancetag, (float) falldistance);
+		save.putShort(firetag, (short) fireticks);
+		save.putInt(foodtag, food);
 		save.putInt(foodTicktag, 0);
-		save.putFloat(healthtag, 20);
-		save.putFloat(foodSaturationLevelTag, 5);
+		save.putFloat(healthtag,(float) health);
+		save.putFloat(foodSaturationLevelTag,(float) saturation);
 		// potion effects can be null
 		return save;
 	}

@@ -129,6 +129,9 @@ public class Core extends JavaPlugin {
 	}
 
     private void saveCircleData() {
+    	for(File circle : CircleDir.listFiles()) {
+    		circle.delete();
+    	}
 		for(Circle circle : Core.instance.circles) {
 			try (FileWriter circleFile = new FileWriter(new File(CircleDir,circle.getCircleName().toString()+".json"))){
 				gson.toJson(circle, circleFile);
