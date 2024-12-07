@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -121,7 +122,7 @@ public class Core extends JavaPlugin {
 		for(File file : CircleDir.listFiles()) {
 			try (FileReader circlefile = new FileReader(file)){
 				Circle circle = gson.fromJson(circlefile, Circle.class);
-				Core.instance.circles.add(circle);
+				Core.instance.circles.addAll(Collections.singleton(circle));
 			} catch (JsonSyntaxException | JsonIOException | IOException e) {
 				warning("Failed reading "+file.getName());
 			}
