@@ -31,6 +31,7 @@ import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.PlayerDataStorage;
 
@@ -260,8 +261,7 @@ public class InventoryStorage {
 			writeData(current_circle,player,type,tag);
             return true;
 		} catch (Exception e) {
-			e.printStackTrace();
-			Core.instance.log(Level.WARNING, "Failed to save player data for " + player);
+			Core.instance.log(Level.WARNING, "Failed to save player data for " + player,e);
 			return false;
 		}
 	}
@@ -291,11 +291,10 @@ public class InventoryStorage {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
-			Core.instance.log(Level.WARNING, "Failed to save player data for " + player);
+			Core.instance.log(Level.WARNING, "Failed to save player data for " + player,e);
 		}
 	}
-
+	  
 	//Make sure inventory is offset by 5
 	public static ListTag inventoryToNBTOffsetStartBy5(Inventory inventory, boolean enderchest) {
 		ListTag itemsList = new ListTag();
@@ -308,7 +307,7 @@ public class InventoryStorage {
 				CompoundTag itemTag = new CompoundTag();
 				try {
 					itemTag = (CompoundTag) nmsItem.save(CraftRegistry.getMinecraftRegistry());
-					if (enderchest) {
+					if (enderchest || !(nmsItem.getItem() instanceof ArmorItem)) {
 						itemTag.putInt("Slot", i);
 					} else {
 						slotmapping mapping = slotmapping.getMapping(i, false);
@@ -320,16 +319,13 @@ public class InventoryStorage {
 						case HEAD:
 							itemTag.putInt("Slot", mapping.getNbtSlot());
 							break;
-						case HOTBAR_START:
-						case INVENTORY_START:
-							itemTag.putInt("Slot", i);
-							break;
 						default:
+							Core.instance.log(Level.INFO, "Invalid call for slot mapping.");
 							break;
 						}
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					Core.instance.log(Level.WARNING, "Slot invalid "+i,e);
 				}
 				itemsList.add(itemTag);
 			}
@@ -439,7 +435,7 @@ public class InventoryStorage {
 			tag.remove(inventory_tag);
 			tag.put(inventory_tag, list);
 		} else if (!circle.canLoadMainInventory() && tag.contains(inventory_tag)) {
-			Core.instance.getLogger().log(Level.WARNING, "Filter: CantLoadMAin");
+			Core.instance.getLogger().log(Level.WARNING, "Filter: CantLoadMain");
 			// can't sync inventory with circle or armor items, therefore get all from
 			// global.
 			tag.remove(inventory_tag);

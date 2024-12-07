@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -16,7 +15,6 @@ import io.alekso56.bukkit.hazeinv.Enums.LabelTag;
 import io.alekso56.bukkit.hazeinv.Models.Circle;
 import io.alekso56.bukkit.hazeinv.Util.InventoryStorage;
 import me.ebonjaeger.perworldinventory.Group;
-import me.ebonjaeger.perworldinventory.api.PerWorldInventoryAPI;
 import me.ebonjaeger.perworldinventory.libs.json.JSONArray;
 import me.ebonjaeger.perworldinventory.libs.json.JSONObject;
 import me.ebonjaeger.perworldinventory.libs.json.parser.JSONParser;
@@ -131,11 +129,6 @@ public class PerWorldInventory implements ConversionModule {
 												InventoryType.ARMOR_INVENTORY.slots,
 												(int) out.get("data-format"));
 										inventoryTemp.addItem(inventory2);
-									} else {
-										ItemStack loftyGoals = new ItemStack(Material.AIR);
-										// head to shield 5
-										inventoryTemp.addItem(loftyGoals, loftyGoals, loftyGoals, loftyGoals,
-												loftyGoals);
 									}
 									// load normal inventory
 									inventoryTemp.addItem(inventory);
