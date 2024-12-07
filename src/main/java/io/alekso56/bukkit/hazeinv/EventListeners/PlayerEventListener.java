@@ -1,5 +1,7 @@
 package io.alekso56.bukkit.hazeinv.EventListeners;
 
+import java.util.Arrays;
+
 import org.bukkit.GameMode;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
@@ -18,6 +20,7 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.potion.PotionEffect;
 import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 import io.alekso56.bukkit.hazeinv.Core;
@@ -94,19 +97,24 @@ public class PlayerEventListener implements Listener {
 		adjuster.setPrevious_circle(adjuster.getCurrent_circle());
 		adjuster.setCurrent_circle(to_circle);
 		adjuster.enableSaving();
+
 		if(adjuster.loadQueue != null && adjuster.loadTargetName != null) {
 			InventoryStorage.saveData(to_circle, e.getPlayer().getUniqueId(), adjuster.loadQueue, false, LabelTag.PLUGIN.setName(adjuster.loadTargetName));
-		}
-		if(adjuster.loadTargetName != null) {
-			adjuster.loadData(LabelTag.PLUGIN.setName(adjuster.loadTargetName) );
 			adjuster.loadQueue = null;
+		}
+		if(adjuster.loadQueue != null){
+			adjuster.disableSaving();
+			e.getPlayer().getInventory().clear();
+			e.getPlayer().getInventory().setContents(Arrays.copyOf(adjuster.loadQueue.getContents(),41));
+			adjuster.loadQueue = null;
+		}else if(adjuster.loadTargetName != null) {
+			adjuster.loadData(LabelTag.PLUGIN.setName(adjuster.loadTargetName) );
 			adjuster.loadTargetName = null;
 		}else {
 			GameMode targetGameMode = Core.mwcore.getMVWorldManager().getMVWorld(world).getGameMode();
 			
 			adjuster.loadData(to_circle.isPerGameMode() ?LabelTag.getOf(targetGameMode) : LabelTag.CIRCLE_SURVIVAL);
 		}
-		
 		Core.instance.saveLastLogoutCircle(e.getPlayer().getUniqueId(), to_circle);
 	}
 	
@@ -117,6 +125,10 @@ public class PlayerEventListener implements Listener {
 	        Core.timeout(e.getPlayer().getUniqueId());
 	        e.getPlayer().getOpenInventory().close();
 	        adjuster.saveData(adjuster.getCurrent_circle().isPerGameMode()? LabelTag.getOf(e.getPlayer().getGameMode()): LabelTag.CIRCLE_SURVIVAL);
+			for (PotionEffect effect : e.getPlayer().getActivePotionEffects()) {
+				e.getPlayer().removePotionEffect(effect.getType());
+	        }
+			e.getPlayer().getVelocity().zero();
 	    }
 	}
 	
