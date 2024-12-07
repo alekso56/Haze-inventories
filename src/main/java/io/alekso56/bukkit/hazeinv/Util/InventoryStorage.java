@@ -217,7 +217,7 @@ public class InventoryStorage {
 					int slot = realtag.getInt(Slotname);
 
 					slotmapping mapping = slotmapping.getMapping(slot, true);
-					Optional<ItemStack> item = ItemStack.parse(null, realtag);
+					Optional<ItemStack> item = ItemStack.parse(CraftRegistry.getMinecraftRegistry(), realtag);
 					if (!item.isPresent())
 						continue;
 
@@ -229,11 +229,8 @@ public class InventoryStorage {
 					case HEAD:
 						inventory.setItem(mapping.getChestSlot(), CraftItemStack.asBukkitCopy(item.get()));
 						break;
-					case HOTBAR_START:
-					case INVENTORY_START:
-						inventory.setItem(slot, CraftItemStack.asBukkitCopy(item.get()));
-						break;
 					default:
+						inventory.setItem(slot, CraftItemStack.asBukkitCopy(item.get()));
 						break;
 					}
 				}
@@ -320,7 +317,7 @@ public class InventoryStorage {
 							itemTag.putInt("Slot", mapping.getNbtSlot());
 							break;
 						default:
-							Core.instance.log(Level.INFO, "Invalid call for slot mapping.");
+							itemTag.putInt("Slot", i);
 							break;
 						}
 					}

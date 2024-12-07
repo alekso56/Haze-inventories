@@ -68,7 +68,7 @@ public class PerWorldInventory implements ConversionModule {
 		}
 	}
 
-	private static final JSONParser PARSER = new JSONParser(JSONParser.USE_INTEGER_STORAGE);
+	private static final JSONParser PARSER = new JSONParser(JSONParser.USE_INTEGER_STORAGE|JSONParser.MODE_PERMISSIVE);
     
 	public static enum FileTypes {
 		ADVENTURE("_adventure.json"), CREATIVE("_creative.json"), SPECTATOR("_spectator.json"), SURVIVAL(".json");
