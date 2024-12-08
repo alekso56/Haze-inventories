@@ -32,8 +32,8 @@ public class VanillaPlayer {
     boolean canSave = true;
     public org.bukkit.inventory.Inventory loadQueue;
     public String loadTargetName;
-	public boolean hasPluginInventory;
-	public boolean canLoad;
+	public boolean hasPluginInventory = false;
+	public boolean canLoad  = true;
 	
 
 	public VanillaPlayer(CraftServer server, CraftPlayer plo) {
