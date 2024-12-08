@@ -145,7 +145,7 @@ public class PlayerEventListener implements Listener {
 	@EventHandler
 	void onGamemodeChangeEvent(PlayerGameModeChangeEvent e) {
 		VanillaPlayer adjuster = Core.instance.players.get(e.getPlayer());
-		if (adjuster.getCurrent_circle().isPerGameMode() && !adjuster.hasPluginInventory && adjuster.canLoad) {
+		if (adjuster != null && adjuster.getCurrent_circle().isPerGameMode() && !adjuster.hasPluginInventory && adjuster.canLoad) {
 			Core.timeout(e.getPlayer().getUniqueId());
             e.getPlayer().getOpenInventory().close();
 			adjuster.saveData(LabelTag.getOf(e.getPlayer().getGameMode()));
