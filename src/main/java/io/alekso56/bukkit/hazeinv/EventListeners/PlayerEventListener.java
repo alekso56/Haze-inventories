@@ -2,6 +2,7 @@ package io.alekso56.bukkit.hazeinv.EventListeners;
 
 import java.util.Arrays;
 
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
@@ -86,6 +87,7 @@ public class PlayerEventListener implements Listener {
         	Core.timeout(e.getPlayer().getUniqueId());
         	//maybe save bugged inventory to correct location, but that requires last gamemode before crash.
         	adjuster.loadData(adjuster.getCurrent_circle().isPerGameMode() ? LabelTag.getOf(e.getPlayer().getGameMode()) : LabelTag.CIRCLE_SURVIVAL);
+        	adjuster.hasPluginInventory = false;
         	e.getPlayer().sendMessage("PlayerSpawnCalled");
         }
 	}
@@ -107,13 +109,16 @@ public class PlayerEventListener implements Listener {
 			e.getPlayer().getInventory().clear();
 			e.getPlayer().getInventory().setContents(Arrays.copyOf(adjuster.loadQueue.getContents(),41));
 			adjuster.loadQueue = null;
+			adjuster.hasPluginInventory = true;
 		}else if(adjuster.loadTargetName != null) {
 			adjuster.loadData(LabelTag.PLUGIN.setName(adjuster.loadTargetName) );
 			adjuster.loadTargetName = null;
+			adjuster.hasPluginInventory = true;
 		}else {
 			GameMode targetGameMode = Core.mwcore.getMVWorldManager().getMVWorld(world).getGameMode();
 			
 			adjuster.loadData(to_circle.isPerGameMode() ?LabelTag.getOf(targetGameMode) : LabelTag.CIRCLE_SURVIVAL);
+			adjuster.hasPluginInventory = false;
 		}
 		Core.instance.saveLastLogoutCircle(e.getPlayer().getUniqueId(), to_circle);
 	}
@@ -122,6 +127,10 @@ public class PlayerEventListener implements Listener {
 	public void onPlayerTeleportEvent(PlayerTeleportEvent e) {
 	    if(e.getTo() != null && !e.getFrom().getWorld().getName().equals(e.getTo().getWorld().getName())){
 	        VanillaPlayer adjuster = Core.instance.players.get(e.getPlayer());
+	        if(!adjuster.canLoad){
+	        	e.setCancelled(true);
+	        	e.getPlayer().sendMessage(ChatColor.RED+"Magic wand active, teleport disabled.");
+	        }
 	        Core.timeout(e.getPlayer().getUniqueId());
 	        e.getPlayer().getOpenInventory().close();
 	        adjuster.saveData(adjuster.getCurrent_circle().isPerGameMode()? LabelTag.getOf(e.getPlayer().getGameMode()): LabelTag.CIRCLE_SURVIVAL);
@@ -136,7 +145,7 @@ public class PlayerEventListener implements Listener {
 	@EventHandler
 	void onGamemodeChangeEvent(PlayerGameModeChangeEvent e) {
 		VanillaPlayer adjuster = Core.instance.players.get(e.getPlayer());
-		if (adjuster.getCurrent_circle().isPerGameMode()) {
+		if (adjuster.getCurrent_circle().isPerGameMode() && !adjuster.hasPluginInventory && adjuster.canLoad) {
 			Core.timeout(e.getPlayer().getUniqueId());
             e.getPlayer().getOpenInventory().close();
 			adjuster.saveData(LabelTag.getOf(e.getPlayer().getGameMode()));

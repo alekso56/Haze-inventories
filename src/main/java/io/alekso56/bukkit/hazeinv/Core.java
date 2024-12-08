@@ -13,6 +13,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -104,7 +105,10 @@ public class Core extends JavaPlugin {
         CircleCommand circlecommand = new CircleCommand();
         getCommand("circle").setExecutor(circlecommand);
         getCommand("circle").setTabCompleter(circlecommand);
-        getCommand("hazconvert").setExecutor(new ConversionCommand());
+   	    getCommand("hazconvert").setExecutor(new ConversionCommand());
+        if(Bukkit.getServer().getPluginManager().getPlugin("Magic") != null) {
+        	 getServer().getPluginManager().registerEvents(new io.alekso56.bukkit.hazeinv.EventListeners.MagicEvent(), this);
+        }
         getCommand("hazpurge").setExecutor(new PurgeCommand());
         getCommand("haztest").setExecutor(new TestCommand());
         mwcore = (MultiverseCore) getServer().getPluginManager().getPlugin("Multiverse-Core");

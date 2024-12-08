@@ -32,6 +32,8 @@ public class VanillaPlayer {
     boolean canSave = true;
     public org.bukkit.inventory.Inventory loadQueue;
     public String loadTargetName;
+	public boolean hasPluginInventory;
+	public boolean canLoad;
 	
 
 	public VanillaPlayer(CraftServer server, CraftPlayer plo) {
@@ -125,5 +127,11 @@ public class VanillaPlayer {
 		this.loadTargetName = plugin.getName()+"_"+inventoryName;
 		return true;
 	}
-        
+
+	public void disableLoading() {
+		this.canLoad = false;
+	}
+	public void enableLoading() {
+		this.canLoad = true;
+	}
 }
