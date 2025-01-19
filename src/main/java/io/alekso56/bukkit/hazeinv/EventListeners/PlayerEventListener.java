@@ -10,15 +10,16 @@ import org.bukkit.World;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.potion.PotionEffect;
@@ -47,8 +48,22 @@ public class PlayerEventListener implements Listener {
 	@EventHandler
 	void onPickupWhileTimedOut(EntityPickupItemEvent e) {
 		if(Core.isTimedOut(e.getEntity().getUniqueId())) e.setCancelled(true);
+		if(e.getEntity().isDead())e.setCancelled(true);
 	}
 	
+	@EventHandler
+	void onDeath(PlayerDeathEvent e) {
+		VanillaPlayer adjuster = Core.instance.players.get(e.getEntity());
+		if(adjuster != null) {
+			if(!e.getKeepLevel()) {
+			    e.getEntity().setExp(e.getNewExp());
+			}
+			if(!e.getKeepInventory()) {
+				e.getEntity().getInventory().clear();
+			}
+	        adjuster.saveData(adjuster.getCurrent_circle().isPerGameMode()? LabelTag.getOf(e.getEntity().getGameMode()): LabelTag.CIRCLE_SURVIVAL);
+		}
+	}
 	@EventHandler
 	void onAdvancement(PlayerAdvancementDoneEvent e) {
 		Player player = e.getPlayer();
@@ -78,17 +93,16 @@ public class PlayerEventListener implements Listener {
 		}
 	}
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR)
 	void onPlayerSpawn(PlayerSpawnLocationEvent e) {
+		Core.instance.players.put(e.getPlayer(), InventoryConversion.wrap(e.getPlayer(),CircleAPI.getFromWorld(e.getPlayer().getWorld())));
 		VanillaPlayer adjuster = Core.instance.players.get(e.getPlayer());
-		if(adjuster == null)return;
         Circle previousCircle = Core.instance.getLastLogoutCircle(e.getPlayer().getUniqueId());
         if(previousCircle != null && !adjuster.getCurrent_circle().getCircleName().equals(previousCircle.getCircleName())) {
         	Core.timeout(e.getPlayer().getUniqueId());
         	//maybe save bugged inventory to correct location, but that requires last gamemode before crash.
         	adjuster.loadData(adjuster.getCurrent_circle().isPerGameMode() ? LabelTag.getOf(e.getPlayer().getGameMode()) : LabelTag.CIRCLE_SURVIVAL);
         	adjuster.hasPluginInventory = false;
-        	e.getPlayer().sendMessage("PlayerSpawnCalled");
         }
 	}
 	@EventHandler
@@ -99,7 +113,6 @@ public class PlayerEventListener implements Listener {
 		adjuster.setPrevious_circle(adjuster.getCurrent_circle());
 		adjuster.setCurrent_circle(to_circle);
 		adjuster.enableSaving();
-
 		if(adjuster.loadQueue != null && adjuster.loadTargetName != null) {
 			InventoryStorage.saveData(to_circle, e.getPlayer().getUniqueId(), adjuster.loadQueue, false, LabelTag.PLUGIN.setName(adjuster.loadTargetName));
 			adjuster.loadQueue = null;
@@ -159,10 +172,4 @@ public class PlayerEventListener implements Listener {
 		VanillaPlayer removed = Core.instance.players.remove(e.getPlayer());
 		Core.instance.saveLastLogoutCircle(e.getPlayer().getUniqueId(), removed.getCurrent_circle());
 	}
-	
-	@EventHandler
-	void onPlayerJoinEvent(PlayerJoinEvent e) {
-        Core.instance.players.put(e.getPlayer(), InventoryConversion.wrap(e.getPlayer(),CircleAPI.getFromWorld(e.getPlayer().getWorld())));
-	}
-
 }

@@ -73,6 +73,9 @@ public class VanillaPlayer {
 				tag = InventoryStorage.CreateDefaultSave();
 			}
 			tag = InventoryStorage.FilterInventoryLoad(tag,current_circle,player.getUniqueId(),type);
+			if(InventoryStorage.containsAndExists(tag, InventoryStorage.healthtag) && tag.getFloat(InventoryStorage.healthtag) <= 0) {
+				tag.putFloat(InventoryStorage.healthtag,  20);
+			}
 			if (inventoryOnly && tag.contains(InventoryStorage.inventory_tag)) {
 				ListTag invsize = tag.getList(InventoryStorage.inventory_tag, CompoundTag.TAG_COMPOUND);
 				player.getHandle().getInventory().clearContent();
@@ -82,7 +85,6 @@ public class VanillaPlayer {
 			} else {
 				player.getHandle().load(tag);
 			}
-           
 			PostInventoryChangeEvent PostEvent = new PostInventoryChangeEvent(player, previous_circle, current_circle);
             Bukkit.getPluginManager().callEvent(PostEvent);
 		} catch (IOException e) {
