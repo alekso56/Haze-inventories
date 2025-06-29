@@ -26,6 +26,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.ItemStackWithSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -125,10 +126,10 @@ public class VanillaPlayer {
             PreInventoryChangeEvent PreEvent = new PreInventoryChangeEvent(player, previous_circle, current_circle);
             Bukkit.getPluginManager().callEvent(PreEvent);
             
-            CompoundTag playerData;
+            CompoundTag playerData; 
 
             try {
-            	TagValueOutput output = TagValueOutput.createWithContext(null, CraftRegistry.getMinecraftRegistry());
+            	TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, CraftRegistry.getMinecraftRegistry());
                 player_s.saveWithoutId(output);
                 player.setExtraData(output);//writes bukkit related data to tags
                 

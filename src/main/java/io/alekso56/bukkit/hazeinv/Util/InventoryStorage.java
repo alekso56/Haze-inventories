@@ -33,6 +33,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ArmorStandItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.PlayerDataStorage;
@@ -306,7 +307,7 @@ public class InventoryStorage {
 			if (item != null) {
 				net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
 				try {
-			        TagValueOutput output = TagValueOutput.createWithContext(null, CraftRegistry.getMinecraftRegistry());
+			        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, CraftRegistry.getMinecraftRegistry());
 			        output.store(ItemStack.MAP_CODEC.stable(), nmsItem);
 			        
 			        CompoundTag itemTag = output.buildResult();
