@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ListIterator;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -14,12 +13,14 @@ import javax.annotation.Nullable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.craftbukkit.v1_21_R3.CraftRegistry;
-import org.bukkit.craftbukkit.v1_21_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_21_R3.inventory.CraftInventory;
-import org.bukkit.craftbukkit.v1_21_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_21_R5.CraftRegistry;
+import org.bukkit.craftbukkit.v1_21_R5.CraftServer;
+import org.bukkit.craftbukkit.v1_21_R5.inventory.CraftInventory;
+import org.bukkit.craftbukkit.v1_21_R5.inventory.CraftItemStack;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.Inventory;
+
+import com.mojang.serialization.DataResult;
 
 import io.alekso56.bukkit.hazeinv.Core;
 import io.alekso56.bukkit.hazeinv.Enums.Flag;
@@ -30,10 +31,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorStandItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.PlayerDataStorage;
+import net.minecraft.world.level.storage.TagValueOutput;
 
 public class InventoryStorage {
 
@@ -151,11 +154,11 @@ public class InventoryStorage {
 			if (tag == null || !containsAndExists(tag, "Pos")) {
 				return null;
 			}
-			String worldname = tag.getString("Dimension").replace("minecraft:", "");
-			ListTag Pos = tag.getList("Pos", CompoundTag.TAG_DOUBLE);
-			double x = Pos.getDouble(0);
-			double y = Pos.getDouble(1);
-			double z = Pos.getDouble(2);
+			String worldname = tag.getString("Dimension").get().replace("minecraft:", "");
+			ListTag Pos = tag.getList("Pos").get();
+			double x = Pos.getDouble(0).get();
+			double y = Pos.getDouble(1).get();
+			double z = Pos.getDouble(2).get();
             return new Location(Bukkit.getWorld(worldname),x,y,z);
 		} catch (IOException e) {
 			Core.instance.log(Level.WARNING, "Failed to load player data for " + player.toString());
@@ -203,7 +206,7 @@ public class InventoryStorage {
 				tag = InventoryStorage.CreateDefaultSave();
 			}
 			tag = InventoryStorage.FilterInventoryLoad(tag, current_circle, player,type);
-			ListTag list = tag.getList(isEnderChest ? ender_inventory_tag : inventory_tag, CompoundTag.TAG_COMPOUND);
+			ListTag list = tag.getList(isEnderChest ? ender_inventory_tag : inventory_tag).get();
 
 			Inventory inventory = Bukkit.createInventory(null, 45, "Example");
 
@@ -214,11 +217,15 @@ public class InventoryStorage {
 
 				if (realtag.contains(Slotname)) {
 
-					int slot = realtag.getInt(Slotname);
+					int slot = realtag.getInt(Slotname).get();
 
 					slotmapping mapping = slotmapping.getMapping(slot, true);
-					Optional<ItemStack> item = ItemStack.parse(CraftRegistry.getMinecraftRegistry(), realtag);
-					if (!item.isPresent())
+					DataResult<net.minecraft.world.item.ItemStack> result =
+						    net.minecraft.world.item.ItemStack.CODEC.parse(
+						    		NbtOps.INSTANCE, realtag
+						    );
+						net.minecraft.world.item.ItemStack item = result.result().orElse(ItemStack.EMPTY);
+					if (item.isEmpty())
 						continue;
 
 					switch (mapping) {
@@ -227,10 +234,10 @@ public class InventoryStorage {
 					case CHEST:
 					case FEET:
 					case HEAD:
-						inventory.setItem(mapping.getChestSlot(), CraftItemStack.asBukkitCopy(item.get()));
+						inventory.setItem(mapping.getChestSlot(), CraftItemStack.asBukkitCopy(item));
 						break;
 					default:
-						inventory.setItem(slot, CraftItemStack.asBukkitCopy(item.get()));
+						inventory.setItem(slot, CraftItemStack.asBukkitCopy(item));
 						break;
 					}
 				}
@@ -298,11 +305,12 @@ public class InventoryStorage {
 
 			if (item != null) {
 				net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-
-				CompoundTag itemTag = new CompoundTag();
 				try {
-					itemTag = (CompoundTag) nmsItem.save(CraftRegistry.getMinecraftRegistry());
-					if (enderchest || !(nmsItem.getItem() instanceof ArmorItem)) {
+			        TagValueOutput output = TagValueOutput.createWithContext(null, CraftRegistry.getMinecraftRegistry());
+			        output.store(ItemStack.MAP_CODEC.stable(), nmsItem);
+			        
+			        CompoundTag itemTag = output.buildResult();
+					if (enderchest || !(nmsItem.getItem() instanceof ArmorStandItem)) {
 						itemTag.putInt("Slot", i);
 					} else {
 						slotmapping mapping = slotmapping.getMapping(i, false);
@@ -319,10 +327,11 @@ public class InventoryStorage {
 							break;
 						}
 					}
+					itemsList.add(itemTag);
 				} catch (Exception e) {
 					Core.instance.log(Level.WARNING, "Slot invalid "+i,e);
 				}
-				itemsList.add(itemTag);
+
 			}
 		}
 		return itemsList;
@@ -389,8 +398,8 @@ public class InventoryStorage {
 		// synced to circle, not global, meaning inventory is global.
 		if (circle.isSyncArmorOnly() && tag.contains(inventory_tag)) {
 			Core.instance.getLogger().log(Level.WARNING, "ArmorOnly");
-			ListTag list = tag.getList(inventory_tag, CompoundTag.TAG_COMPOUND);
-			ListTag replacements = data.contains(inventory_tag) ? data.getList(inventory_tag, CompoundTag.TAG_COMPOUND)
+			ListTag list = tag.getList(inventory_tag).get();
+			ListTag replacements = data.contains(inventory_tag) ? data.getList(inventory_tag).get()
 					: null;
 
 			ListIterator<Tag> listerator = list.listIterator();
@@ -400,7 +409,7 @@ public class InventoryStorage {
 
 				if (realtag.contains(Slotname)) {
 
-					int slot = realtag.getInt(Slotname);
+					int slot = realtag.getInt(Slotname).get();
 
 					slotmapping mapping = slotmapping.getMapping(slot, true);
 					switch (mapping) {
@@ -421,7 +430,7 @@ public class InventoryStorage {
 							while (replerator.hasNext()) {
 								CompoundTag replacetag = (CompoundTag) replerator.next();
 								if (replacetag.contains(Slotname)) {
-									int slotrepl = replacetag.getInt(Slotname);
+									int slotrepl = replacetag.getInt(Slotname).get();
 									if (slotrepl == slot) {
 										listerator.set(replacetag);
 										isReplaced = true;
@@ -469,19 +478,19 @@ public class InventoryStorage {
 					tag.remove(attributesTag);
 					
 					tag.put(attributesTag,
-							containsAndExists(data, attributesTag) ? data.getList(attributesTag, CompoundTag.TAG_COMPOUND)
+							containsAndExists(data, attributesTag) ? data.getList(attributesTag).get()
 									: new ListTag());
 					break;
 				case AIR:
 					tag.remove(airTag);
 
-					tag.putInt(airTag, containsAndExists(data, airTag) ? data.getInt(airTag) : 300);
+					tag.putInt(airTag, containsAndExists(data, airTag) ? data.getInt(airTag).get() : 300);
 					break;
 				case EXHAUSTION:
 					tag.remove(EXHAUSTIONtag);
 
 					tag.putFloat(EXHAUSTIONtag,
-							containsAndExists(data, EXHAUSTIONtag) ? data.getFloat(EXHAUSTIONtag) : 0);
+							containsAndExists(data, EXHAUSTIONtag) ? data.getFloat(EXHAUSTIONtag).get() : 0);
 					break;
 				case EXPERIENCE:
 					tag.remove(xpLeveltag);
@@ -489,47 +498,47 @@ public class InventoryStorage {
 					tag.remove(xpTotaltag);
 					tag.remove(EnchantmentSeedtag);
 
-					tag.putInt(xpLeveltag, containsAndExists(data, xpLeveltag) ? data.getInt(xpLeveltag) : 0);
+					tag.putInt(xpLeveltag, containsAndExists(data, xpLeveltag) ? data.getInt(xpLeveltag).get() : 0);
 					tag.putFloat(xpProgresstag,
-							containsAndExists(data, xpProgresstag) ? data.getFloat(xpProgresstag) : 0);
-					tag.putInt(xpTotaltag, containsAndExists(data, xpTotaltag) ? data.getInt(xpTotaltag) : 0);
+							containsAndExists(data, xpProgresstag) ? data.getFloat(xpProgresstag).get() : 0);
+					tag.putInt(xpTotaltag, containsAndExists(data, xpTotaltag) ? data.getInt(xpTotaltag).get() : 0);
 					tag.putInt(EnchantmentSeedtag,
-							containsAndExists(data, EnchantmentSeedtag) ? data.getInt(EnchantmentSeedtag) : 0);
+							containsAndExists(data, EnchantmentSeedtag) ? data.getInt(EnchantmentSeedtag).get() : 0);
 					break;
 				case FALL_DISTANCE:
 					tag.remove(distancetag);
 
-					tag.putFloat(distancetag, containsAndExists(data, distancetag) ? data.getFloat(distancetag) : 0);
+					tag.putFloat(distancetag, containsAndExists(data, distancetag) ? data.getFloat(distancetag).get() : 0);
 					break;
 				case FIRE_TICKS:
 					tag.remove(firetag);
 
-					tag.putShort(firetag, containsAndExists(data, firetag) ? data.getShort(firetag) : (short) -20);
+					tag.putShort(firetag, containsAndExists(data, firetag) ? data.getShort(firetag).get() : (short) -20);
 					break;
 				case FOOD_LEVEL:
 					tag.remove(foodtag);
 					tag.remove(foodTicktag);
 
-					tag.putInt(foodtag, containsAndExists(data, foodtag) ? data.getInt(foodtag) : 20);
-					tag.putInt(foodTicktag, containsAndExists(data, foodTicktag) ? data.getInt(foodTicktag) : 0);
+					tag.putInt(foodtag, containsAndExists(data, foodtag) ? data.getInt(foodtag).get() : 20);
+					tag.putInt(foodTicktag, containsAndExists(data, foodTicktag) ? data.getInt(foodTicktag).get() : 0);
 					break;
 				case HEALTH:
 					tag.remove(healthtag);
 
-					tag.putFloat(healthtag, containsAndExists(data, healthtag) ? data.getFloat(healthtag) : 20);
+					tag.putFloat(healthtag, containsAndExists(data, healthtag) ? data.getFloat(healthtag).get() : 20);
 					break;
 				case POTIONS:
 					tag.remove(effecttag);
 
 					tag.put(effecttag,
-							containsAndExists(data, effecttag) ? data.getList(effecttag, CompoundTag.TAG_COMPOUND)
+							containsAndExists(data, effecttag) ? data.getList(effecttag).get()
 									: new ListTag());
 					break;
 				case SATURATION:
 					tag.remove(foodSaturationLevelTag);
 
 					tag.putFloat(foodSaturationLevelTag,
-							containsAndExists(data, foodSaturationLevelTag) ? data.getFloat(foodSaturationLevelTag)
+							containsAndExists(data, foodSaturationLevelTag) ? data.getFloat(foodSaturationLevelTag).get()
 									: 5);
 					break;
 				case ECONOMY:
@@ -538,13 +547,13 @@ public class InventoryStorage {
 						double past_money = Core.getEcon().getBalance(player2);
 						Core.getEcon().withdrawPlayer(player2, past_money);
 						if (containsAndExists(data, EconomyTag)) {
-							Core.getEcon().depositPlayer(player2, data.getDouble(EconomyTag));
+							Core.getEcon().depositPlayer(player2, data.getDouble(EconomyTag).get());
 						}
 					}
 					break;
 				case MAX_AIR:
 					((LivingEntity) Bukkit.getOfflinePlayer(player))
-							.setMaximumAir(containsAndExists(data, MaxairTag) ? data.getInt(MaxairTag) : 300);
+							.setMaximumAir(containsAndExists(data, MaxairTag) ? data.getInt(MaxairTag).get() : 300);
 					break;
 				default:
 					break;
@@ -573,12 +582,12 @@ public class InventoryStorage {
 				Core.instance.getLogger().log(Level.WARNING, e.getMessage());
 			}
 		}
-		data.putUUID(Last_location_Tag, current_circle.getCircleName());
+		data.putString(Last_location_Tag, current_circle.getCircleName().toString());
 		// synced to circle, not global, meaning inventory is global.
 		if (previous_circle.isSyncArmorOnly() && tag.contains(inventory_tag)) {
 
-			ListTag list = tag.getList(inventory_tag, CompoundTag.TAG_COMPOUND);
-			ListTag globalInv = data.contains(inventory_tag) ? data.getList(inventory_tag, CompoundTag.TAG_COMPOUND)
+			ListTag list = tag.getList(inventory_tag).get();
+			ListTag globalInv = data.contains(inventory_tag) ? data.getList(inventory_tag).get()
 					: null;
 
 			ListIterator<Tag> listerator = list.listIterator();
@@ -588,7 +597,7 @@ public class InventoryStorage {
 
 				if (realtag.contains(Slotname)) {
 
-					int slot = realtag.getInt(Slotname);
+					int slot = realtag.getInt(Slotname).get();
 					// Optional to check for ranges instead, but prefer this method to create a
 					// dynamic filter for future use.
 					slotmapping mapping = slotmapping.getMapping(slot, true);
@@ -610,7 +619,7 @@ public class InventoryStorage {
 							while (replerator.hasNext()) {
 								CompoundTag replacetag = (CompoundTag) replerator.next();
 								if (replacetag.contains(Slotname)) {
-									int slotrepl = replacetag.getInt(Slotname);
+									int slotrepl = replacetag.getInt(Slotname).get();
 									if (slotrepl == slot) {
 										replerator.set(realtag);
 										Exists = true;
@@ -650,45 +659,45 @@ public class InventoryStorage {
 				switch (flag) {
 				case ATTRIBUTES:
 					data.put(attributesTag,
-							containsAndExists(tag, attributesTag) ? tag.getList(attributesTag, CompoundTag.TAG_COMPOUND)
+							containsAndExists(tag, attributesTag) ? tag.getList(attributesTag).get()
 									: new ListTag());
 					break;
 				case AIR:
-					data.putInt(airTag, containsAndExists(tag, airTag) ? tag.getInt(airTag) : 300);
+					data.putInt(airTag, containsAndExists(tag, airTag) ? tag.getInt(airTag).get() : 300);
 					break;
 				case EXHAUSTION:
 					data.putFloat(EXHAUSTIONtag,
-							containsAndExists(tag, EXHAUSTIONtag) ? tag.getFloat(EXHAUSTIONtag) : 0);
+							containsAndExists(tag, EXHAUSTIONtag) ? tag.getFloat(EXHAUSTIONtag).get() : 0);
 					break;
 				case EXPERIENCE:
-					data.putInt(xpLeveltag, containsAndExists(tag, xpLeveltag) ? tag.getInt(xpLeveltag) : 0);
+					data.putInt(xpLeveltag, containsAndExists(tag, xpLeveltag) ? tag.getInt(xpLeveltag).get() : 0);
 					data.putFloat(xpProgresstag,
-							containsAndExists(tag, xpProgresstag) ? tag.getFloat(xpProgresstag) : 0);
-					data.putInt(xpTotaltag, containsAndExists(tag, xpTotaltag) ? tag.getInt(xpTotaltag) : 0);
+							containsAndExists(tag, xpProgresstag) ? tag.getFloat(xpProgresstag).get() : 0);
+					data.putInt(xpTotaltag, containsAndExists(tag, xpTotaltag) ? tag.getInt(xpTotaltag).get() : 0);
 					data.putInt(EnchantmentSeedtag,
-							containsAndExists(tag, EnchantmentSeedtag) ? tag.getInt(EnchantmentSeedtag) : 0);
+							containsAndExists(tag, EnchantmentSeedtag) ? tag.getInt(EnchantmentSeedtag).get() : 0);
 					break;
 				case FALL_DISTANCE:
-					data.putFloat(distancetag, containsAndExists(tag, distancetag) ? tag.getFloat(distancetag) : 0);
+					data.putFloat(distancetag, containsAndExists(tag, distancetag) ? tag.getFloat(distancetag).get() : 0);
 					break;
 				case FIRE_TICKS:
-					data.putShort(firetag, containsAndExists(tag, firetag) ? tag.getShort(firetag) : (short) -20);
+					data.putShort(firetag, containsAndExists(tag, firetag) ? tag.getShort(firetag).get() : (short) -20);
 					break;
 				case FOOD_LEVEL:
-					data.putInt(foodtag, containsAndExists(tag, foodtag) ? tag.getInt(foodtag) : 20);
-					data.putInt(foodTicktag, containsAndExists(tag, foodTicktag) ? tag.getInt(foodTicktag) : 0);
+					data.putInt(foodtag, containsAndExists(tag, foodtag) ? tag.getInt(foodtag).get() : 20);
+					data.putInt(foodTicktag, containsAndExists(tag, foodTicktag) ? tag.getInt(foodTicktag).get() : 0);
 					break;
 				case HEALTH:
-					data.putFloat(healthtag, containsAndExists(tag, healthtag) ? tag.getFloat(healthtag) : 20);
+					data.putFloat(healthtag, containsAndExists(tag, healthtag) ? tag.getFloat(healthtag).get() : 20);
 					break;
 				case POTIONS:
 					data.put(effecttag,
-							containsAndExists(tag, effecttag) ? tag.getList(effecttag, CompoundTag.TAG_COMPOUND)
+							containsAndExists(tag, effecttag) ? tag.getList(effecttag).get()
 									: new ListTag());
 					break;
 				case SATURATION:
 					data.putFloat(foodSaturationLevelTag,
-							containsAndExists(tag, foodSaturationLevelTag) ? tag.getFloat(foodSaturationLevelTag) : 5);
+							containsAndExists(tag, foodSaturationLevelTag) ? tag.getFloat(foodSaturationLevelTag).get() : 5);
 					break;
 				case ECONOMY:
 					if (Core.getEcon().isEnabled()) {

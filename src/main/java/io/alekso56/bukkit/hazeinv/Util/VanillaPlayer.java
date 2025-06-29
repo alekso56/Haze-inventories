@@ -2,14 +2,19 @@ package io.alekso56.bukkit.hazeinv.Util;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 
 import javax.annotation.Nullable;
 
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_21_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_21_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_21_R5.CraftRegistry;
+import org.bukkit.craftbukkit.v1_21_R5.CraftServer;
+import org.bukkit.craftbukkit.v1_21_R5.entity.CraftPlayer;
 import org.bukkit.plugin.Plugin;
+
+import com.mojang.serialization.DataResult;
 
 import io.alekso56.bukkit.hazeinv.Core;
 import io.alekso56.bukkit.hazeinv.Enums.LabelTag;
@@ -19,9 +24,15 @@ import io.alekso56.bukkit.hazeinv.Models.Circle;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.ItemStackWithSlot;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.PlayerDataStorage;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 
 public class VanillaPlayer {
 	
@@ -73,17 +84,32 @@ public class VanillaPlayer {
 				tag = InventoryStorage.CreateDefaultSave();
 			}
 			tag = InventoryStorage.FilterInventoryLoad(tag,current_circle,player.getUniqueId(),type);
-			if(InventoryStorage.containsAndExists(tag, InventoryStorage.healthtag) && tag.getFloat(InventoryStorage.healthtag) <= 0) {
+			if(InventoryStorage.containsAndExists(tag, InventoryStorage.healthtag) && tag.getFloat(InventoryStorage.healthtag).isPresent()) {
 				tag.putFloat(InventoryStorage.healthtag,  20);
 			}
 			if (inventoryOnly && tag.contains(InventoryStorage.inventory_tag)) {
-				ListTag invsize = tag.getList(InventoryStorage.inventory_tag, CompoundTag.TAG_COMPOUND);
+				Optional<ListTag> invsize = tag.getList(InventoryStorage.inventory_tag);
 				player.getHandle().getInventory().clearContent();
-				Inventory Replacement_Inventory = new Inventory(player.getHandle());
-				Replacement_Inventory.load(invsize);
+				
+				Inventory Replacement_Inventory = new Inventory(player.getHandle(), player.getHandle().equipment);
+				
+				DataResult<List<ItemStackWithSlot>> result = ItemStackWithSlot.CODEC.listOf().parse(NbtOps.INSTANCE, invsize.get());
+				
+				//ValueInputContextHelper helpr = new ValueInputContextHelper(CraftRegistry.getMinecraftRegistry(), NbtOps.INSTANCE);
+				List<ItemStackWithSlot> generate = result.getOrThrow();
+				  for (ItemStackWithSlot entry : generate) {
+				        int slot = entry.slot();
+				        ItemStack stack = entry.stack();
+
+				        // Make sure the slot index is valid
+				        if (slot >= 0 && slot < Replacement_Inventory.getContainerSize()) {
+				        	Replacement_Inventory.setItem(slot, stack);
+				        }
+				    }
 				player.getHandle().getInventory().replaceWith(Replacement_Inventory);
 			} else {
-				player.getHandle().load(tag);
+				ValueInput tagload = TagValueInput.create(null, CraftRegistry.getMinecraftRegistry(), tag);
+				player.getHandle().load(tagload);
 			}
 			PostInventoryChangeEvent PostEvent = new PostInventoryChangeEvent(player, previous_circle, current_circle);
             Bukkit.getPluginManager().callEvent(PostEvent);
@@ -96,11 +122,22 @@ public class VanillaPlayer {
         ServerPlayer player_s = player.getHandle();
         
         try {
-            CompoundTag playerData = new CompoundTag();
             PreInventoryChangeEvent PreEvent = new PreInventoryChangeEvent(player, previous_circle, current_circle);
             Bukkit.getPluginManager().callEvent(PreEvent);
-            player_s.saveWithoutId(playerData);
-            player.setExtraData(playerData); //writes bukkit related data to tags
+            
+            CompoundTag playerData;
+
+            try {
+            	TagValueOutput output = TagValueOutput.createWithContext(null, CraftRegistry.getMinecraftRegistry());
+                player_s.saveWithoutId(output);
+                player.setExtraData(output);//writes bukkit related data to tags
+                
+                
+                playerData = output.buildResult();
+            } catch (Exception e) {
+                e.printStackTrace();
+                playerData = new CompoundTag(); // fallback
+            }
             playerData = InventoryStorage.FilterInventorySave(playerData, current_circle, previous_circle, player.getUniqueId(), type);
             InventoryStorage.writeData(current_circle, player.getUniqueId(), type, playerData);
 
