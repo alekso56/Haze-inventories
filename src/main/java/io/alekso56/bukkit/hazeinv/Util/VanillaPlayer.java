@@ -109,7 +109,7 @@ public class VanillaPlayer {
 				    }
 				player.getHandle().getInventory().replaceWith(Replacement_Inventory);
 			} else {
-				ValueInput tagload = TagValueInput.create(null, CraftRegistry.getMinecraftRegistry(), tag);
+				ValueInput tagload = TagValueInput.create(ProblemReporter.DISCARDING, CraftRegistry.getMinecraftRegistry(), tag);
 				player.getHandle().load(tagload);
 			}
 			PostInventoryChangeEvent PostEvent = new PostInventoryChangeEvent(player, previous_circle, current_circle);
