@@ -6,13 +6,16 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.advancement.Advancement;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntityPortalEnterEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
@@ -77,6 +80,37 @@ public class PlayerEventListener implements Listener {
 	        if(world.getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS)) {
 	        	world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
 	        }
+		}
+	}
+	
+	@EventHandler
+	void onPortalWithNonSharingCircles(EntityPortalEnterEvent e) {
+		if (e.getEntityType() != EntityType.PLAYER)
+			return;
+		Location from = e.getLocation();
+		if (from == null)
+			return;
+		boolean isEnd = from.getBlock().getType().equals(Material.END_PORTAL);
+
+		if (isEnd) {
+			Player player = (Player) e.getEntity();
+			VanillaPlayer adjuster = Core.instance.players.get((Player) e.getEntity());
+			if (!adjuster.canLoad) {
+				return;
+			}
+			Core.timeout((player).getUniqueId());
+			player.getOpenInventory().close();
+			//Avoid getting stuck into the portal block and dying on loop
+			from = from.add(1, 1, 0);
+			player.teleport(from);
+			player.setFallDistance(0);
+			
+			adjuster.saveData(adjuster.getCurrent_circle().isPerGameMode() ? LabelTag.getOf(player.getGameMode())
+					: LabelTag.CIRCLE_SURVIVAL);
+			for (PotionEffect effect : player.getActivePotionEffects()) {
+				player.removePotionEffect(effect.getType());
+			}
+			player.getVelocity().zero();
 		}
 	}
 	
