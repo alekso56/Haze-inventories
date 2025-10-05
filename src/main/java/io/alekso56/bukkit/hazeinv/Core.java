@@ -19,13 +19,13 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mvplugins.multiverse.core.MultiverseCore;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-import com.onarandombox.MultiverseCore.MultiverseCore;
 
 import io.alekso56.bukkit.hazeinv.Commands.CircleCommand;
 import io.alekso56.bukkit.hazeinv.Commands.ConversionCommand;

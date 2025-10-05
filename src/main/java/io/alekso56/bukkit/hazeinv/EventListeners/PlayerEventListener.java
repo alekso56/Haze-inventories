@@ -26,6 +26,7 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.potion.PotionEffect;
+import org.mvplugins.multiverse.core.MultiverseCoreApi;
 import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 import io.alekso56.bukkit.hazeinv.Core;
@@ -162,7 +163,8 @@ public class PlayerEventListener implements Listener {
 			adjuster.loadTargetName = null;
 			adjuster.hasPluginInventory = true;
 		}else {
-			GameMode targetGameMode = Core.mwcore.getMVWorldManager().getMVWorld(world).getGameMode();
+			Boolean hasWorld = MultiverseCoreApi.get().getWorldManager().getWorld(world).isDefined();
+			GameMode targetGameMode = hasWorld ? MultiverseCoreApi.get().getWorldManager().getWorld(world).get().getGameMode():GameMode.SURVIVAL;
 			
 			adjuster.loadData(to_circle.isPerGameMode() ?LabelTag.getOf(targetGameMode) : LabelTag.CIRCLE_SURVIVAL);
 			adjuster.hasPluginInventory = false;
