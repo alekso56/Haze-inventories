@@ -13,10 +13,10 @@ import javax.annotation.Nullable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.craftbukkit.v1_21_R5.CraftRegistry;
-import org.bukkit.craftbukkit.v1_21_R5.CraftServer;
-import org.bukkit.craftbukkit.v1_21_R5.inventory.CraftInventory;
-import org.bukkit.craftbukkit.v1_21_R5.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_21_R6.CraftRegistry;
+import org.bukkit.craftbukkit.v1_21_R6.CraftServer;
+import org.bukkit.craftbukkit.v1_21_R6.inventory.CraftInventory;
+import org.bukkit.craftbukkit.v1_21_R6.inventory.CraftItemStack;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.Inventory;
 

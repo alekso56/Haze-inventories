@@ -1,8 +1,8 @@
 package io.alekso56.bukkit.hazeinv.Util;
 
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_21_R5.CraftServer;
-import org.bukkit.craftbukkit.v1_21_R5.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_21_R6.CraftServer;
+import org.bukkit.craftbukkit.v1_21_R6.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 import io.alekso56.bukkit.hazeinv.Models.Circle;

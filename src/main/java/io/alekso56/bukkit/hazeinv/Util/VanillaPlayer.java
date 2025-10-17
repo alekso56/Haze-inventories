@@ -9,9 +9,9 @@ import java.util.logging.Level;
 import javax.annotation.Nullable;
 
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_21_R5.CraftRegistry;
-import org.bukkit.craftbukkit.v1_21_R5.CraftServer;
-import org.bukkit.craftbukkit.v1_21_R5.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_21_R6.CraftRegistry;
+import org.bukkit.craftbukkit.v1_21_R6.CraftServer;
+import org.bukkit.craftbukkit.v1_21_R6.entity.CraftPlayer;
 import org.bukkit.plugin.Plugin;
 
 import com.mojang.serialization.DataResult;
