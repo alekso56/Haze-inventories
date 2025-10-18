@@ -22,7 +22,8 @@ public class Circle {
 	boolean syncMainInventory = true;
 	boolean syncArmorOnly = false;
 	boolean advancementsPossible = true;
-
+	public boolean gamemodeEnforcement = true;
+	
 	int flags = 0;
 
 	public Circle(World name) {

@@ -2,6 +2,7 @@ package io.alekso56.bukkit.hazeinv.EventListeners;
 
 import java.util.Arrays;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.GameRule;
@@ -165,6 +166,19 @@ public class PlayerEventListener implements Listener {
 		}else {
 			Boolean hasWorld = MultiverseCoreApi.get().getWorldManager().getWorld(world).isDefined();
 			GameMode targetGameMode = hasWorld ? MultiverseCoreApi.get().getWorldManager().getWorld(world).get().getGameMode():GameMode.SURVIVAL;
+			if(to_circle.gamemodeEnforcement) {
+			     Bukkit.getScheduler().runTaskLater(Core.instance, new Runnable() {
+
+					@Override
+					public void run() {
+						if(targetGameMode.equals(GameMode.SURVIVAL)) {
+							e.getPlayer().setGameMode(GameMode.ADVENTURE); //Issue with 1.21.10
+						}
+						e.getPlayer().setGameMode(targetGameMode);
+					}
+			    	 
+			     }, 1);
+			}
 			
 			adjuster.loadData(to_circle.isPerGameMode() ?LabelTag.getOf(targetGameMode) : LabelTag.CIRCLE_SURVIVAL);
 			adjuster.hasPluginInventory = false;
