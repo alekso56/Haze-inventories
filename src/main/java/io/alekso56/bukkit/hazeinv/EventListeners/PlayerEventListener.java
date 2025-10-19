@@ -1,6 +1,7 @@
 package io.alekso56.bukkit.hazeinv.EventListeners;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -24,9 +25,12 @@ import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.potion.PotionEffect;
+import org.jspecify.annotations.Nullable;
 import org.mvplugins.multiverse.core.MultiverseCoreApi;
 import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
@@ -37,6 +41,7 @@ import io.alekso56.bukkit.hazeinv.Models.Circle;
 import io.alekso56.bukkit.hazeinv.Util.InventoryConversion;
 import io.alekso56.bukkit.hazeinv.Util.InventoryStorage;
 import io.alekso56.bukkit.hazeinv.Util.VanillaPlayer;
+import io.papermc.paper.event.player.AsyncPlayerSpawnLocationEvent;
 
 public class PlayerEventListener implements Listener {
 	
@@ -130,14 +135,15 @@ public class PlayerEventListener implements Listener {
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR)
-	void onPlayerSpawn(PlayerSpawnLocationEvent e) {
-		Core.instance.players.put(e.getPlayer(), InventoryConversion.wrap(e.getPlayer(),CircleAPI.getFromWorld(e.getPlayer().getWorld())));
-		VanillaPlayer adjuster = Core.instance.players.get(e.getPlayer());
-        Circle previousCircle = Core.instance.getLastLogoutCircle(e.getPlayer().getUniqueId());
+	void onPlayerSpawn(PlayerJoinEvent e) {
+		Player play = e.getPlayer();
+		Core.instance.players.put(play, InventoryConversion.wrap(play,CircleAPI.getFromWorld(play.getWorld())));
+		VanillaPlayer adjuster = Core.instance.players.get(play);
+        Circle previousCircle = Core.instance.getLastLogoutCircle(play.getUniqueId());
         if(previousCircle != null && !adjuster.getCurrent_circle().getCircleName().equals(previousCircle.getCircleName())) {
-        	Core.timeout(e.getPlayer().getUniqueId());
+        	Core.timeout(play.getUniqueId());
         	//maybe save bugged inventory to correct location, but that requires last gamemode before crash.
-        	adjuster.loadData(adjuster.getCurrent_circle().isPerGameMode() ? LabelTag.getOf(e.getPlayer().getGameMode()) : LabelTag.CIRCLE_SURVIVAL);
+        	adjuster.loadData(adjuster.getCurrent_circle().isPerGameMode() ? LabelTag.getOf(play.getGameMode()) : LabelTag.CIRCLE_SURVIVAL);
         	adjuster.hasPluginInventory = false;
         }
 	}
